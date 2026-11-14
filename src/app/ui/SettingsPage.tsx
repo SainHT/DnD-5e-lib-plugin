@@ -1,6 +1,7 @@
 // The Settings page: the active campaign's rules and, in the full edition,
 // the harvest log's import.
 
+import { Notice } from 'obsidian'
 import { useRef, useState, type ReactNode } from 'react'
 import {
   CAMPAIGN_VALUE_PERCENT_MAX,
@@ -78,6 +79,7 @@ export default function SettingsPage() {
         >
           <CampaignSections narrow={narrow} />
           <DdbSection narrow={narrow} />
+          <FiveEToolsSection narrow={narrow} />
           {/* The harvest log is private (MYDND-200): guarded in place, so the SRD
               edition, which has no harvesting, drops the section and its import. */}
           {null}
@@ -93,7 +95,7 @@ const SECTIONS: readonly { id: SectionId; label: string; sub: string }[] = [
   { id: 'campaign', label: 'Campaign', sub: 'Which one is open' },
   { id: 'rules', label: 'Rules', sub: 'What this campaign plays by' },
   { id: 'ddb', label: 'D&D Beyond', sub: 'Where imports land' },
-  ...([]),
+  { id: 'import', label: '5etools Import', sub: 'Import rules data' },
 ]
 
 /** Below this the section list goes and the sections stack (the narrow board). */
@@ -337,6 +339,36 @@ function DdbSection({ narrow }: { narrow: boolean }) {
           {PLUGIN_TITLE}.
         </span>
       </div>
+    </Section>
+  )
+}
+
+
+// --- 5e Tools Importer ------------------------------------------------------
+/**
+ * Imported entities will use the existing `Note folders` settings rather than
+ * adding a second set of importer destinations. The importer domain resolves
+ * each 5etools entity kind through the same per-kind override and rules-root
+ * logic used by the catalogs, so changing those settings changes where future
+ * imports are written.
+ */
+function FiveEToolsSection({ narrow }: { narrow: boolean }) {
+  return (
+    <Section id="import" title="5etools Import" file="Note folders" narrow={narrow}>
+      <div className="bst-st-pointer">
+        <strong>Use the existing Note folders</strong>
+        <span className="bst-note">
+          Imported spells, monsters, items and other rules data will use the paths configured in Obsidian&rsquo;s Note
+          folders settings, including per-kind folder overrides.
+        </span>
+      </div>
+      <button
+        type="button"
+        className="bst-plain bst-btn-primary bst-btn-sm"
+        onClick={() => new Notice('5etools import triggered...')}
+      >
+        Import 5etools Data
+      </button>
     </Section>
   )
 }
