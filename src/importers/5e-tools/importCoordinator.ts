@@ -1,4 +1,6 @@
 import { findImportFiles, readImportFiles, type VaultAdapter } from './fileHandler'
+import { importFeats, type FeatVault } from './importers/featImporter'
+import { DEFAULT_NOTE_FOLDERS, type NoteFoldersSettings } from '../../platform'
 import type { FiveEToolsCategory } from './types'
 
 export interface ImportProgress {
@@ -15,6 +17,7 @@ export class FiveEToolsImportCoordinator {
   constructor(
     private readonly adapter: VaultAdapter,
     private readonly notify: (message: string) => void = () => {},
+    private readonly folders: () => NoteFoldersSettings = () => DEFAULT_NOTE_FOLDERS,
   ) {}
 
   async import(path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void): Promise<ImportReport> {
@@ -30,6 +33,7 @@ export class FiveEToolsImportCoordinator {
       let done = 0
 
       for (const file of files) {
+        if (file.category === 'feats') await this.importFeats(file.path)
         for (let index = 0; index < file.records.length; index += 1) {
           done += 1
           onProgress?.({ done, total })
@@ -47,4 +51,13 @@ export class FiveEToolsImportCoordinator {
       throw cause
     }
   }
+
+  private async importFeats(path: string): Promise<void> {
+    if (!isFeatVault(this.adapter)) throw new Error('Feat imports require a writable Obsidian vault.')
+    await importFeats(this.adapter, path, this.folders())
+  }
+}
+
+function isFeatVault(adapter: VaultAdapter): adapter is FeatVault {
+  return 'create' in adapter && typeof adapter.create === 'function' && 'list' in adapter && typeof adapter.list === 'function'
 }

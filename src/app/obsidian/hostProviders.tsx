@@ -9,6 +9,7 @@ import { ObsidianProvider } from '../../platform/host'
 import type { PaneHost } from '../../platform/host'
 import type { State } from '../model/state'
 import { FiveEToolsImportCoordinator } from '../../importers'
+import { featVaultFromApp } from '../../importers/host'
 
 /**
  * The providers every mount of the app's pages needs, above the router: the
@@ -73,10 +74,7 @@ export function HostProviders({
             : undefined
         }
         importFiveETools={async (path, category) => {
-          const coordinator = new FiveEToolsImportCoordinator(
-            app.vault.adapter,
-            message => new Notice(message),
-          )
+          const coordinator = new FiveEToolsImportCoordinator(featVaultFromApp(app), message => new Notice(message), plugin.noteFolders)
           return coordinator.import(path, category)
         }}
       >

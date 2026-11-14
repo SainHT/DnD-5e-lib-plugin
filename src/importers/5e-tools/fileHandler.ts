@@ -14,12 +14,15 @@ const CATEGORY_FOLDERS: Readonly<Record<string, FiveEToolsCategory>> = {
   monster: 'bestiary',
   items: 'items',
   item: 'items',
+  feats: 'feats',
+  feat: 'feats',
 }
 
 export const IMPORT_CATEGORIES: readonly { value: FiveEToolsCategory; label: string }[] = [
   { value: 'spells', label: 'Spells' },
   { value: 'bestiary', label: 'Monsters' },
   { value: 'items', label: 'Items' },
+  { value: 'feats', label: 'Feats' },
 ]
 
 export function categoryForFolder(folder: string): FiveEToolsCategory | null {
@@ -50,7 +53,7 @@ export async function findImportFiles(
     const files = await adapter.list(folder)
     candidates.push(...files.files.filter(isJson).map(file => ({ path: file, category })))
   }
-  if (candidates.length === 0) throw new Error('The folder contains no 5etools JSON files in spells, bestiary, or items.')
+  if (candidates.length === 0) throw new Error('The folder contains no 5etools JSON files in spells, bestiary, items, or feats.')
   return candidates
 }
 
