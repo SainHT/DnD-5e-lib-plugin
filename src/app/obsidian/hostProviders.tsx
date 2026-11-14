@@ -1,4 +1,4 @@
-import { type App, Keymap, Menu, Platform } from 'obsidian'
+import { type App, Keymap, Menu, Notice, Platform } from 'obsidian'
 import type { ReactNode } from 'react'
 
 import { DomainProviders } from '../ui/context'
@@ -8,6 +8,7 @@ import type MyDndVaultPlugin from '../../main'
 import { ObsidianProvider } from '../../platform/host'
 import type { PaneHost } from '../../platform/host'
 import type { State } from '../model/state'
+import { FiveEToolsImportCoordinator } from '../../importers'
 
 /**
  * The providers every mount of the app's pages needs, above the router: the
@@ -71,6 +72,13 @@ export function HostProviders({
               }
             : undefined
         }
+        importFiveETools={async (path, category) => {
+          const coordinator = new FiveEToolsImportCoordinator(
+            app.vault.adapter,
+            message => new Notice(message),
+          )
+          return coordinator.import(path, category)
+        }}
       >
         {/* Inside `ObsidianProvider` because it needs the host `App` for the
             Atlas walk, and outside the router because the roll log is per
