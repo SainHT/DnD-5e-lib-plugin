@@ -33,7 +33,7 @@ export default defineConfig({
         plugins: [srdNotes],
         define,
         resolve: { alias },
-        test: { name: 'logic', include: ['src/**/*.test.ts'], environment: 'node' },
+        test: { name: 'logic', include: ['src/**/*.test.ts', 'tests/**/*.test.ts'], environment: 'node' },
       },
       {
         plugins: [srdNotes],
