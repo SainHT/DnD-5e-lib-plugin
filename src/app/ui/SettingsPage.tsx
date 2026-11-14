@@ -1,7 +1,6 @@
 // The Settings page: the active campaign's rules and, in the full edition,
 // the harvest log's import.
 
-import { Notice } from 'obsidian'
 import { useRef, useState, type ReactNode } from 'react'
 import {
   CAMPAIGN_VALUE_PERCENT_MAX,
@@ -12,6 +11,8 @@ import { rarityValueCp } from '@vault/derive/magicItemValue.js'
 import { copperLabel } from '../../compendium'
 import { PLUGIN_TITLE } from '../../platform'
 import { useActiveCampaign, useCampaigns, useElementWidth, usePlatform, Empty } from '../../platform/host'
+import { IMPORT_CATEGORIES } from '../../importers'
+import { useFiveEToolsImport } from './context'
 import type { Campaign } from '../../platform'
 
 /**
@@ -353,6 +354,26 @@ function DdbSection({ narrow }: { narrow: boolean }) {
  * imports are written.
  */
 function FiveEToolsSection({ narrow }: { narrow: boolean }) {
+  const importer = useFiveEToolsImport()
+  const [path, setPath] = useState('')
+  const [category, setCategory] = useState<(typeof IMPORT_CATEGORIES)[number]['value']>('spells')
+  const isFile = path.trim().toLowerCase().endsWith('.json')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const runImport = async () => {
+    if (!importer || !path.trim()) return
+    setBusy(true)
+    setError(null)
+    try {
+      await importer(path.trim(), isFile ? category : undefined)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <Section id="import" title="5etools Import" file="Note folders" narrow={narrow}>
       <div className="bst-st-pointer">
@@ -362,10 +383,35 @@ function FiveEToolsSection({ narrow }: { narrow: boolean }) {
           folders settings, including per-kind folder overrides.
         </span>
       </div>
+      {error && <Problem>{error}</Problem>}
+      <input
+        type="text"
+        value={path}
+        placeholder="Path to 5etools folder or JSON file"
+        aria-label="5etools data path"
+        className="bst-input"
+        onChange={event => setPath(event.target.value)}
+        spellCheck={false}
+      />
+      {isFile && (
+        <select
+          aria-label="5etools file category"
+          className="bst-input"
+          value={category}
+          onChange={event => setCategory(event.target.value as typeof category)}
+        >
+          {IMPORT_CATEGORIES.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )}
       <button
         type="button"
         className="bst-plain bst-btn-primary bst-btn-sm"
-        onClick={() => new Notice('5etools import triggered...')}
+        disabled={!importer || !path.trim() || busy}
+        onClick={() => void runImport()}
       >
         Import 5etools Data
       </button>
