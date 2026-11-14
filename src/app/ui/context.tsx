@@ -8,6 +8,7 @@ import { CompendiumProvider } from '../../compendium/host'
 import { GmProvider, useMonsterEncounter } from '../../gm/host'
 import { CatalogsProvider } from '../../catalogs/host'
 import { PlatformProvider } from '../../platform/host'
+import type { FiveEToolsCategory, ImportReport } from '../../importers'
 
 /**
  * Every domain's provider, nested once (MYDND-199).
@@ -36,6 +37,7 @@ export function DomainProviders({
   QuirkList,
   privateProviders,
   srdNotes,
+  importFiveETools,
   children,
 }: {
   content: Content
@@ -65,6 +67,7 @@ export function DomainProviders({
   privateProviders?: (children: ReactNode) => ReactNode
   /** The SRD edition only; see `useSrdNotes`. */
   srdNotes?: SrdNotesHost
+  importFiveETools?: (path: string, category?: FiveEToolsCategory) => Promise<ImportReport>
   children: ReactNode
 }) {
   // A new object per render would re-render every GM consumer on every render
@@ -98,7 +101,9 @@ export function DomainProviders({
                 not private, so every mount gets it, the harness included. */}
             <CatalogsProvider useMonsterEncounter={useMonsterEncounter}>
               <SrdNotesContext.Provider value={srdNotes ?? null}>
-                {privateProviders ? privateProviders(children) : children}
+                <FiveEToolsContext.Provider value={importFiveETools ?? null}>
+                  {privateProviders ? privateProviders(children) : children}
+                </FiveEToolsContext.Provider>
               </SrdNotesContext.Provider>
             </CatalogsProvider>
           </GmProvider>
@@ -109,6 +114,7 @@ export function DomainProviders({
 }
 
 const SrdNotesContext = createContext<SrdNotesHost | null>(null)
+const FiveEToolsContext = createContext<((path: string, category?: FiveEToolsCategory) => Promise<ImportReport>) | null>(null)
 
 /**
  * The SRD edition's notes, installed from the bundle (MYDND-185), for Home's
@@ -117,4 +123,8 @@ const SrdNotesContext = createContext<SrdNotesHost | null>(null)
  */
 export function useSrdNotes(): SrdNotesHost | null {
   return useContext(SrdNotesContext)
+}
+
+export function useFiveEToolsImport(): ((path: string, category?: FiveEToolsCategory) => Promise<ImportReport>) | null {
+  return useContext(FiveEToolsContext)
 }

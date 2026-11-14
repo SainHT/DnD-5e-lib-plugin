@@ -42,3 +42,8 @@ export const FIVEETOOLS_ENTITY_FOLDERS: Readonly<Record<FiveEToolsEntityKind, Ru
 export function fiveEToolsFolderFor(kind: FiveEToolsEntityKind, folders: NoteFoldersSettings): string {
   return resolveRuleFolder(FIVEETOOLS_ENTITY_FOLDERS[kind], folders)
 }
+
+export { FiveEToolsImportCoordinator, type ImportProgress, type ImportReport } from './importCoordinator'
+export { findImportFiles, readImportFiles, IMPORT_CATEGORIES, type VaultAdapter } from './fileHandler'
+export { slugForNote, noteMarkdown } from './markdown'
+export type { FiveEToolsCategory, FiveEToolsRecord, ImportCandidate, ImportFile, MappedNote } from './types'
