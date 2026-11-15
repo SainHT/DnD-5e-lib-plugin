@@ -86,7 +86,7 @@ function benefitsFromEntries(entries: unknown, abilityIncrease: AbilityIncrease 
       const text = textFromEntries(entry.entries)
       if (entry.name) benefits.push({ key: slug(entry.name), name: entry.name, text })
       else overview.push(text)
-    }
+    } else overview.push(textFromEntry(entry))
   }
   if (overview.length > 0) benefits.unshift({ key: 'overview', text: overview.join('\n\n') })
   if (abilityIncrease) benefits.unshift(abilityIncrease.benefit)
@@ -96,9 +96,24 @@ function benefitsFromEntries(entries: unknown, abilityIncrease: AbilityIncrease 
 function textFromEntries(entries: unknown): string {
   if (!Array.isArray(entries)) return ''
   return entries
-    .map(entry => (typeof entry === 'string' ? entry : isEntry(entry) ? textFromEntries(entry.entries) : ''))
+    .map(entry => textFromEntry(entry))
     .filter(Boolean)
     .join('\n\n')
+}
+
+function textFromEntry(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (!value || typeof value !== 'object') return ''
+  const entry = value as Record<string, unknown>
+  if (Array.isArray(entry.entries)) return textFromEntries(entry.entries)
+  if (entry.type === 'list' && Array.isArray(entry.items)) {
+    return entry.items
+      .map(item => textFromEntry(item))
+      .filter(Boolean)
+      .map(item => `- ${item}`)
+      .join('\n')
+  }
+  return ''
 }
 
 function prerequisiteText(value: unknown): string {

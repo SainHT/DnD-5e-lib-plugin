@@ -58,8 +58,30 @@ describe('feat mapper', () => {
       entries: ['You gain a +2 bonus to attack rolls you make with Ranged weapons.'],
     }).markdown
 
-    expect(markdown).toContain('kind: "fighting style"')
-    expect(markdown).toContain('  - feat/fighting-style')
+    expect(markdown).toContain('kind: "fighting_style"')
+    expect(markdown).toContain('  - feat/fighting_style')
     expect(markdown).toContain('prerequisite: "Fighting Style feature"')
+  })
+
+  it('renders list entry items in the overview benefit', () => {
+    const markdown = mapFeat({
+      name: 'Athlete',
+      category: 'G',
+      entries: [
+        'You have undergone extensive physical training to gain the following benefits:',
+        {
+          type: 'list',
+          items: ['Standing up uses only 5 feet of movement.', "Climbing doesn't cost extra movement."],
+        },
+      ],
+    }).markdown
+
+    expect(markdown).toContain('- Standing up uses only 5 feet of movement.')
+    expect(markdown).toContain("- Climbing doesn't cost extra movement.")
+    expect(markdown).toContain(
+      `text: ${JSON.stringify(
+        "You have undergone extensive physical training to gain the following benefits:\n\n- Standing up uses only 5 feet of movement.\n- Climbing doesn't cost extra movement.",
+      )}`,
+    )
   })
 })
