@@ -4,7 +4,7 @@
  * No helper in this module performs I/O. The returned structures are consumed
  * by the Markdown builder and are intentionally straightforward to test.
  */
-import { sha256 } from './hash'
+import { sha256 } from '../hash'
 
 /** A structured benefit rendered in a feat's body and `vault-feat` fence. */
 export interface FeatBenefit {

@@ -1,4 +1,4 @@
-import { mapFeat } from '../mappers/featMapper'
+import { mapFeat } from '../mappers/Feats/featMapper'
 import { slugForNote } from '../markdown'
 import { resolveRuleFolder, type NoteFoldersSettings } from '../../../platform'
 import type { FiveEToolsRecord } from '../types'

@@ -6,7 +6,7 @@
  * `featMarkdownBuilder`, keeping the public mapper easy to reuse for imports
  * and tests.
  */
-import type { FiveEToolsRecord, MappedNote } from '../types'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
 import { buildFeatMarkdown } from './featMarkdownBuilder'
 import {
   abilityIncreaseFromRecord,
