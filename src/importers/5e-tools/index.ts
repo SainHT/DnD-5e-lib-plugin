@@ -46,6 +46,25 @@ export function fiveEToolsFolderFor(kind: FiveEToolsEntityKind, folders: NoteFol
 export { FiveEToolsImportCoordinator, type ImportProgress, type ImportReport } from './importCoordinator'
 export { findImportFiles, readImportFiles, IMPORT_CATEGORIES, type VaultAdapter } from './fileHandler'
 export { importFeats, type FeatImportReport, type FeatVault } from './importers/featImporter'
-export { mapFeat } from './mappers/featMapper'
+export { mapFeat } from './mappers/Feats/featMapper'
+export { importSpells, type SpellImportReport, type SpellVault } from './importers/spellImporter'
+export { mapSpell, preprocessSpellTags } from './mappers/Spells/spellMapper'
+export { buildSpellMarkdown, type SpellMarkdownData } from './mappers/Spells/spellMarkdownBuilder'
+export {
+  castingTimeText,
+  classesFromRecord,
+  componentsText,
+  concentrationFromRecord,
+  damageDiceFromEntries,
+  damageTypesFromRecord,
+  durationText,
+  exportHash,
+  preprocessTags,
+  rangeText,
+  ritualFromRecord,
+  schoolName,
+  sourceForRecord,
+  textFromEntries,
+} from './mappers/Spells/spellHelpers'
 export { slugForNote, noteMarkdown } from './markdown'
 export type { FiveEToolsCategory, FiveEToolsRecord, ImportCandidate, ImportFile, MappedNote } from './types'
