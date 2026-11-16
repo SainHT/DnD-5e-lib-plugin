@@ -104,5 +104,5 @@ function buildBody(data: SpellMarkdownData): string {
  * @returns JSON-compatible quoted scalar.
  */
 function yaml(value: string): string {
-  return value
+  return JSON.stringify(value)
 }

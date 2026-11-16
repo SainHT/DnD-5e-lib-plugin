@@ -31,17 +31,38 @@ describe('spell mapper', () => {
   it('renders the requested metadata and preprocesses damage tags', () => {
     const markdown = mapSpell(acidArrow).markdown
 
-    expect(markdown).toContain('title: Acid Arrow')
-    expect(markdown).toContain('source: SRD 5.2.1')
-    expect(markdown).toContain('school: Evocation')
-    expect(markdown).toContain('range: 90 feet')
-    expect(markdown).toContain('components: V, S, M (powdered rhubarb leaf)')
-    expect(markdown).toContain('duration: Instantaneous')
-    expect(markdown).toContain('- Wizard')
-    expect(markdown).toContain('damage_dice: 4d4')
+    expect(markdown).toContain('title: "Acid Arrow"')
+    expect(markdown).toContain('source: "SRD 5.2.1"')
+    expect(markdown).toContain('school: "Evocation"')
+    expect(markdown).toContain('range: "90 feet"')
+    expect(markdown).toContain('components: "V, S, M (powdered rhubarb leaf)"')
+    expect(markdown).toContain('duration: "Instantaneous"')
+    expect(markdown).toContain('- "Wizard"')
+    expect(markdown).toContain('damage_dice: "4d4"')
     expect(markdown).toContain('takes 4d4 Acid damage')
     expect(markdown).toContain('increases by 1d4')
     expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+  })
+
+  it('renders conditioned reaction casting time in frontmatter and body', () => {
+    const markdown = mapSpell({
+      ...acidArrow,
+      name: 'Shield',
+      srd52: 'Shield',
+      level: 1,
+      time: [
+        {
+          number: 1,
+          unit: 'reaction',
+          condition: 'which you take when a {@condition humanoid} you can see within 60 feet of you dies',
+        },
+      ],
+    }).markdown
+
+    const castingTime = '1 reaction, which you take when a humanoid you can see within 60 feet of you dies'
+    expect(markdown).toContain(`casting_time: ${JSON.stringify(castingTime)}`)
+    expect(markdown).toContain(`- **Casting Time:** ${castingTime}`)
+    expect(markdown).not.toContain('{@condition')
   })
 
   it('writes current spells into the configured spells folder and skips existing notes', async () => {

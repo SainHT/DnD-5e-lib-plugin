@@ -38,17 +38,24 @@ export function schoolName(value: unknown): string {
 }
 
 /**
- * Formats the first casting-time entry.
+ * Formats all casting-time entries, including optional reaction conditions.
  *
  * @param value Raw 5etools time array.
- * @returns Human-readable casting time.
+ * @returns Human-readable casting times joined with `or`.
  */
 export function castingTimeText(value: unknown): string {
-  if (!Array.isArray(value) || !value[0] || typeof value[0] !== 'object') return ''
-  const entry = value[0] as Record<string, unknown>
-  const number = typeof entry.number === 'number' ? String(entry.number) : ''
-  const unit = stringValue(entry.unit) ?? ''
-  return [number, unit].filter(Boolean).join(' ')
+  if (!Array.isArray(value)) return ''
+  return value
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === 'object'))
+    .map(entry => {
+      const number = typeof entry.number === 'number' ? String(entry.number) : ''
+      const unit = stringValue(entry.unit) ?? ''
+      const base = [number, unit].filter(Boolean).join(' ')
+      const condition = typeof entry.condition === 'string' ? preprocessTags(entry.condition.trim()) : ''
+      return condition ? `${base}, ${condition}` : base
+    })
+    .filter(Boolean)
+    .join(' or ')
 }
 
 /**
