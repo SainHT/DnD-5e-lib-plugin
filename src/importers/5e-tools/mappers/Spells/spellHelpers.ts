@@ -95,20 +95,38 @@ export function componentsText(value: unknown): string {
 }
 
 /**
- * Formats the first duration entry and preserves concentration metadata.
+ * Formats every spell duration option, unwrapping timed duration details.
  *
  * @param value Raw 5etools duration array.
- * @returns Human-readable duration text.
+ * @returns Human-readable duration options joined with `or`.
  */
 export function durationText(value: unknown): string {
-  if (!Array.isArray(value) || !value[0] || typeof value[0] !== 'object') return ''
-  const duration = value[0] as Record<string, unknown>
-  const type = stringValue(duration.type) ?? ''
+  if (!Array.isArray(value)) return ''
+  return value
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === 'object'))
+    .map(formatDurationEntry)
+    .filter(Boolean)
+    .join(' or ')
+}
+
+/**
+ * Formats one spell duration option.
+ *
+ * @param entry Raw duration entry.
+ * @returns Human-readable duration option.
+ */
+function formatDurationEntry(entry: Record<string, unknown>): string {
+  const type = stringValue(entry.type) ?? ''
   if (type === 'instant') return 'Instantaneous'
   if (type === 'permanent') return 'Permanent'
-  const amount = typeof duration.amount === 'number' ? String(duration.amount) : ''
-  const unit = stringValue(duration.unit) ?? stringValue(duration.type) ?? ''
-  return [amount, unit].filter(Boolean).join(' ') || unit
+  if (type === 'special') return 'Special'
+  if (type !== 'timed' || !entry.duration || typeof entry.duration !== 'object') return type
+
+  const timed = entry.duration as Record<string, unknown>
+  const amount = typeof timed.amount === 'number' ? timed.amount : null
+  const unit = stringValue(timed.type) ?? ''
+  const formatted = formatTimedDuration(amount, unit)
+  return entry.concentration === true ? `Concentration, up to ${formatted}` : formatted
 }
 
 /**
@@ -119,8 +137,9 @@ export function durationText(value: unknown): string {
  */
 export function concentrationFromRecord(record: Record<string, unknown>): boolean {
   if (record.concentration === true) return true
-  const duration = Array.isArray(record.duration) ? record.duration[0] : null
-  return Boolean(duration && typeof duration === 'object' && (duration as Record<string, unknown>).concentration === true)
+  return Array.isArray(record.duration) && record.duration.some(
+    duration => Boolean(duration && typeof duration === 'object' && (duration as Record<string, unknown>).concentration === true),
+  )
 }
 
 /**
@@ -238,4 +257,17 @@ function flattenEntries(value: unknown): { text: string; name?: string }[] {
  */
 function stringValue(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+/**
+ * Formats a timed duration and pluralizes its unit when needed.
+ *
+ * @param amount Numeric duration amount, or null when absent.
+ * @param unit Raw duration unit.
+ * @returns Human-readable timed duration.
+ */
+function formatTimedDuration(amount: number | null, unit: string): string {
+  if (amount === null) return unit
+  const displayUnit = amount === 1 || unit.endsWith('s') ? unit : `${unit}s`
+  return `${amount} ${displayUnit}`.trim()
 }

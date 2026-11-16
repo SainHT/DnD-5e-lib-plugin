@@ -65,6 +65,42 @@ describe('spell mapper', () => {
     expect(markdown).not.toContain('{@condition')
   })
 
+  it('unwraps timed durations and pluralizes their units', () => {
+    const singular = mapSpell({ ...acidArrow, duration: [{ type: 'timed', duration: { type: 'round', amount: 1 } }] }).markdown
+    const plural = mapSpell({ ...acidArrow, duration: [{ type: 'timed', duration: { type: 'minute', amount: 10 } }] }).markdown
+
+    expect(singular).toContain('duration: "1 round"')
+    expect(singular).toContain('- **Duration:** 1 round')
+    expect(plural).toContain('duration: "10 minutes"')
+    expect(plural).toContain('- **Duration:** 10 minutes')
+  })
+
+  it('formats timed concentration duration and preserves the frontmatter flag', () => {
+    const markdown = mapSpell({
+      ...acidArrow,
+      duration: [{ type: 'timed', duration: { type: 'hour', amount: 1 }, concentration: true }],
+    }).markdown
+
+    expect(markdown).toContain('duration: "Concentration, up to 1 hour"')
+    expect(markdown).toContain('- **Duration:** Concentration, up to 1 hour')
+    expect(markdown).toContain('concentration: true')
+  })
+
+  it('joins multiple duration options and detects concentration on any option', () => {
+    const markdown = mapSpell({
+      ...acidArrow,
+      duration: [
+        { type: 'instant' },
+        { type: 'timed', duration: { type: 'hour', amount: 1 } },
+        { type: 'timed', duration: { type: 'minute', amount: 10 }, concentration: true },
+      ],
+    }).markdown
+
+    expect(markdown).toContain('duration: "Instantaneous or 1 hour or Concentration, up to 10 minutes"')
+    expect(markdown).toContain('- **Duration:** Instantaneous or 1 hour or Concentration, up to 10 minutes')
+    expect(markdown).toContain('concentration: true')
+  })
+
   it('writes current spells into the configured spells folder and skips existing notes', async () => {
     const created: string[] = []
     const vault: SpellVault = {
