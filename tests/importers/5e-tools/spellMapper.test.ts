@@ -101,6 +101,16 @@ describe('spell mapper', () => {
     expect(markdown).toContain('concentration: true')
   })
 
+  it('reads ritual status from nested metadata and uses the vault ritual tag convention', () => {
+    const ritualMarkdown = mapSpell({ ...acidArrow, meta: { ritual: true } }).markdown
+    const nonRitualMarkdown = mapSpell(acidArrow).markdown
+
+    expect(ritualMarkdown).toContain('ritual: true')
+    expect(ritualMarkdown).toContain('- ritual')
+    expect(nonRitualMarkdown).toContain('ritual: false')
+    expect(nonRitualMarkdown).not.toContain('- ritual')
+  })
+
   it('writes current spells into the configured spells folder and skips existing notes', async () => {
     const created: string[] = []
     const vault: SpellVault = {

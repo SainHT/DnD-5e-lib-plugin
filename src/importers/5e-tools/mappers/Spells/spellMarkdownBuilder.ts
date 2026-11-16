@@ -47,7 +47,13 @@ export interface SpellMarkdownData {
  */
 export function buildSpellMarkdown(data: SpellMarkdownData): string {
   const body = buildBody(data)
-  const tags = ['spell', `spell/level-${data.level}`, `spell/${data.school.toLowerCase()}`, ...(data.source === 'SRD 5.2.1' ? ['srd-5-2-1'] : [])]
+  const tags = [
+    'spell',
+    `spell/level-${data.level}`,
+    `spell/${data.school.toLowerCase()}`,
+    ...(data.source === 'SRD 5.2.1' ? ['srd-5-2-1'] : []),
+    ...(data.ritual ? ['ritual'] : []),
+  ]
   return [
     '---',
     `title: ${yaml(data.name)}`,

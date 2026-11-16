@@ -149,7 +149,9 @@ export function concentrationFromRecord(record: Record<string, unknown>): boolea
  * @returns True when the record marks ritual casting.
  */
 export function ritualFromRecord(record: Record<string, unknown>): boolean {
-  return record.ritual === true
+  if (record.ritual === true) return true
+  if (!record.meta || typeof record.meta !== 'object') return false
+  return (record.meta as Record<string, unknown>).ritual === true
 }
 
 /**
