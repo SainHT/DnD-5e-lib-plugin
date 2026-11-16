@@ -8,6 +8,7 @@ import type { MappedNote, FiveEToolsRecord } from '../../types'
 import { buildSpellMarkdown, type SpellMarkdownData } from './spellMarkdownBuilder'
 import {
   classesFromRecord,
+  cantripDiceFromRecord,
   componentsText,
   damageDiceFromEntries,
   damageTypesFromRecord,
@@ -45,6 +46,7 @@ export function mapSpell(record: FiveEToolsRecord): MappedNote {
     ritual: ritualFromRecord(record),
     damageTypes: damageTypesFromRecord(record.damageInflict),
     damageDice: damageDiceFromEntries(record.entries),
+    cantripDice: cantripDiceFromRecord(record.scalingLevelDice),
     classes: classesFromRecord(record.classes),
     body: textFromEntries(record.entriesHigherLevel, record.entries),
   }

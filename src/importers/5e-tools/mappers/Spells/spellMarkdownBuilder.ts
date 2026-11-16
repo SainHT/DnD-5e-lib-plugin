@@ -33,6 +33,8 @@ export interface SpellMarkdownData {
   damageTypes: string[]
   /** First damage dice expression. */
   damageDice: string
+  /** Character-level scaling dice for cantrips. */
+  cantripDice: string[]
   /** Classes that can prepare or learn the spell. */
   classes: string[]
   /** Rendered spell prose. */
@@ -49,7 +51,7 @@ export function buildSpellMarkdown(data: SpellMarkdownData): string {
   const body = buildBody(data)
   const tags = [
     'spell',
-    `spell/level-${data.level}`,
+    data.level === 0 ? 'spell/cantrip' : `spell/level-${data.level}`,
     `spell/${data.school.toLowerCase()}`,
     ...(data.source === 'SRD 5.2.1' ? ['srd-5-2-1'] : []),
     ...(data.ritual ? ['ritual'] : []),
@@ -69,6 +71,7 @@ export function buildSpellMarkdown(data: SpellMarkdownData): string {
     `ritual: ${data.ritual}`,
     ...(data.damageTypes.length ? ['damage_types:', ...data.damageTypes.map(type => `- ${type}`)] : []),
     ...(data.damageDice ? [`damage_dice: ${yaml(data.damageDice)}`] : []),
+    ...(data.cantripDice.length ? ['cantrip_dice:', ...data.cantripDice.map(dice => `  - ${yaml(dice)}`)] : []),
     ...(data.classes.length ? ['classes:', ...data.classes.map(value => `- ${yaml(value)}`)] : []),
     'tags:',
     ...tags.map(tag => `- ${tag}`),

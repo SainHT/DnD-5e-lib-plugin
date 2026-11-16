@@ -176,6 +176,33 @@ export function damageDiceFromEntries(value: unknown): string {
 }
 
 /**
+ * Extracts cantrip scaling dice from one or more 5etools scaling objects.
+ *
+ * @param value Raw `scalingLevelDice` value.
+ * @returns Dice expressions ordered by character level.
+ */
+export function cantripDiceFromRecord(value: unknown): string[] {
+  const scalingObjects = Array.isArray(value) ? value : [value]
+  const diceByLevel: { level: number; dice: string; order: number }[] = []
+  let order = 0
+  for (const scalingValue of scalingObjects) {
+    if (!scalingValue || typeof scalingValue !== 'object') continue
+    const scaling = (scalingValue as Record<string, unknown>).scaling
+    if (!scaling || typeof scaling !== 'object') continue
+    for (const [level, dice] of Object.entries(scaling as Record<string, unknown>)) {
+      if (typeof dice !== 'string' || !Number.isFinite(Number(level))) continue
+      diceByLevel.push({ level: Number(level), dice, order })
+      order += 1
+    }
+  }
+  return [...new Map(
+    diceByLevel
+      .sort((left, right) => left.level - right.level || left.order - right.order)
+      .map(entry => [entry.dice, entry]),
+  ).values()].map(entry => entry.dice)
+}
+
+/**
  * Extracts class names from the common 5etools class representation.
  *
  * @param value Raw classes field.
@@ -219,6 +246,7 @@ export function preprocessTags(value: string): string {
     .replace(/\{@(?:b|bold)\s+([^}]+)\}/gi, '**$1**')
     .replace(/\{@(?:i|italic)\s+([^}]+)\}/gi, '*$1*')
     .replace(/\{@(?:spell|condition|item|creature|class|skill)\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
+    .replace(/\{@variantrule\s+[^|}]+\|[^|}]+\|([^}]+)\}/gi, '$1')
     .replace(/\{@(?:hit|dc)\s+([^}]+)\}/gi, '$1')
     .replace(/\{@link\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
 }

@@ -52,6 +52,7 @@ export { mapSpell, preprocessSpellTags } from './mappers/Spells/spellMapper'
 export { buildSpellMarkdown, type SpellMarkdownData } from './mappers/Spells/spellMarkdownBuilder'
 export {
   castingTimeText,
+  cantripDiceFromRecord,
   classesFromRecord,
   componentsText,
   concentrationFromRecord,

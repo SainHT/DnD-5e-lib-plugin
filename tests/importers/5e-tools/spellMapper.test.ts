@@ -111,6 +111,39 @@ describe('spell mapper', () => {
     expect(nonRitualMarkdown).not.toContain('- ritual')
   })
 
+  it('renders sorted cantrip scaling dice and higher-level entries', () => {
+    const markdown = mapSpell({
+      name: 'Acid Splash',
+      source: 'XPHB',
+      srd52: 'Acid Splash',
+      basicRules2024: true,
+      level: 0,
+      school: 'C',
+      time: [{ number: 1, unit: 'action' }],
+      range: { type: 'point', distance: { type: 'feet', amount: 60 } },
+      components: { v: true, s: true },
+      duration: [{ type: 'instant' }],
+      entries: ['You create an acidic bubble that deals {@damage 1d6} Acid damage in a {@variantrule Sphere [Area of Effect]|XPHB|Sphere}.'],
+      entriesHigherLevel: [
+        {
+          type: 'entries',
+          name: 'Cantrip Upgrade',
+          entries: ['The damage increases by {@damage 1d6} when you reach levels 5 ({@damage 2d6}), 11 ({@damage 3d6}), and 17 ({@damage 4d6}).'],
+        },
+      ],
+      scalingLevelDice: {
+        label: 'Acid damage',
+        scaling: { '11': '3d6', '1': '1d6', '17': '4d6', '5': '2d6' },
+      },
+    }).markdown
+
+    expect(markdown).toContain('cantrip_dice:')
+    expect(markdown).toContain('  - "1d6"\n  - "2d6"\n  - "3d6"\n  - "4d6"')
+    expect(markdown).toContain('- spell/cantrip')
+    expect(markdown).toContain('Cantrip Upgrade. The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).')
+    expect(markdown).toContain('in a Sphere')
+  })
+
   it('writes current spells into the configured spells folder and skips existing notes', async () => {
     const created: string[] = []
     const vault: SpellVault = {
