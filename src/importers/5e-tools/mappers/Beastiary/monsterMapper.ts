@@ -115,7 +115,7 @@ function entriesToMonsterEntries(value: unknown): MonsterEntry[] {
         : typeof entry.desc === 'string'
           ? preprocessMonsterTags(entry.desc)
           : ''
-      return [{ name: entry.name, desc }]
+      return [{ name: normalizeMonsterTags(entry.name), desc }]
     })
 }
 

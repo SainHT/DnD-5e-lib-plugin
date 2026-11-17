@@ -3,6 +3,7 @@ import { DEFAULT_NOTE_FOLDERS } from '../../../src/platform'
 import {
   importMonsters,
   mapMonster,
+  preprocessMonsterTags,
   type MonsterVault,
 } from '../../../src/importers/5e-tools'
 
@@ -101,6 +102,32 @@ describe('monster mapper', () => {
     expect(markdown).toContain('- **2/Day Each:**')
     expect(markdown).toContain('- **1/Day Each:**')
     expect(markdown).toContain('name: "Protective Magic"')
+  })
+
+  it('preprocesses legacy atk tags and recharge tags while preserving atkr tags', () => {
+    expect(preprocessMonsterTags('{@atk mw} {@hit 12}')).toBe('*Melee Attack Roll:* +12')
+    expect(preprocessMonsterTags('{@atk rw} {@hit 12}')).toBe('*Ranged Attack Roll:* +12')
+    expect(preprocessMonsterTags('{@atk mw,rw}')).toBe('*Melee Attack Roll or Ranged Attack Roll:*')
+    expect(preprocessMonsterTags('{@atk ms}')).toBe('*Melee Attack Roll:*')
+    expect(preprocessMonsterTags('{@atk rs}')).toBe('*Ranged Attack Roll:*')
+    expect(preprocessMonsterTags('{@atk ms,rs}')).toBe('*Melee Attack Roll or Ranged Attack Roll:*')
+    expect(preprocessMonsterTags('{@recharge 6}')).toBe('(Recharge 6)')
+    expect(preprocessMonsterTags('{@recharge 5}')).toBe('(Recharge 5)')
+    expect(preprocessMonsterTags('{@recharge}')).toBe('(Recharge 6)')
+    expect(preprocessMonsterTags('{@atkr m} {@hit 12}')).toBe('*Melee Attack Roll:* +12')
+    expect(preprocessMonsterTags('{@atkr r} {@hit 12}')).toBe('*Ranged Attack Roll:* +12')
+    expect(preprocessMonsterTags('{@atkr m,r}')).toBe('*Melee Attack Roll or Ranged Attack Roll:*')
+  })
+
+  it('preprocesses recharge tags in trait and action names', () => {
+    const markdown = mapMonster({
+      ...lich,
+      trait: [{ name: 'Elemental Ward {@recharge}', entries: ['The ward restores at dawn.'] }],
+      action: [{ name: 'Arcane Breath {@recharge 5}', entries: ['The creature breathes magic.'] }],
+    }).markdown
+
+    expect(markdown).toContain('name: "Elemental Ward (Recharge 6)"')
+    expect(markdown).toContain('name: "Arcane Breath (Recharge 5)"')
   })
 
   it('writes monsters to the configured bestiary folder and skips existing notes', async () => {
