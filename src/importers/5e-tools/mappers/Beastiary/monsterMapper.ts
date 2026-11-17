@@ -40,7 +40,8 @@ export function mapMonster(record: FiveEToolsRecord): MappedNote {
   const typeData = monsterType(record.type)
   const traits: MonsterEntry[] = entriesToMonsterEntries(record.trait)
   const actions: MonsterEntry[] = entriesToMonsterEntries(record.action)
-  const reactions: MonsterEntry[] = []
+  actions.push(...entriesToMonsterEntries(record.bonus))
+  const reactions: MonsterEntry[] = entriesToMonsterEntries(record.reaction)
   const legendaryActions: MonsterEntry[] = entriesToMonsterEntries(record.legendary)
   const legendary = Array.isArray(record.legendary) && record.legendary.length > 0
   const spellcasting = Array.isArray(record.spellcasting) && record.spellcasting.length > 0

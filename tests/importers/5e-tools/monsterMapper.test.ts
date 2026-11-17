@@ -130,6 +130,65 @@ describe('monster mapper', () => {
     expect(markdown).toContain('name: "Arcane Breath (Recharge 5)"')
   })
 
+  it('renders standard monster reactions', () => {
+    const markdown = mapMonster({
+      ...lich,
+      spellcasting: undefined,
+      reaction: [
+        {
+          name: 'Instinctive Charm',
+          entries: [
+            'When a creature within 60 feet makes an attack roll, it makes a {@dc 19} Wisdom saving throw.',
+          ],
+        },
+      ],
+    }).markdown
+
+    expect(markdown).toContain('reactions:')
+    expect(markdown).toContain('name: "Instinctive Charm"')
+    expect(markdown).toContain('it makes a DC 19 Wisdom saving throw.')
+  })
+
+  it('renders spellcasting reactions', () => {
+    const markdown = mapMonster({
+      ...lich,
+      reaction: undefined,
+    }).markdown
+
+    expect(markdown).toContain('reactions:')
+    expect(markdown).toContain('name: "Protective Magic"')
+  })
+
+  it('renders standard and spellcasting reactions together', () => {
+    const markdown = mapMonster({
+      ...lich,
+      reaction: [
+        {
+          name: 'Instinctive Charm',
+          entries: ['The attacker makes a {@dc 19} Wisdom saving throw.'],
+        },
+      ],
+    }).markdown
+
+    expect(markdown).toContain('reactions:')
+    expect(markdown).toContain('name: "Instinctive Charm"')
+    expect(markdown).toContain('name: "Protective Magic"')
+  })
+
+  it('maps top-level bonus actions alongside regular actions', () => {
+    const markdown = mapMonster({
+      ...lich,
+      bonus: [
+        {
+          name: 'Shadow Step',
+          entries: ['The creature teleports up to 30 feet.'],
+        },
+      ],
+    }).markdown
+
+    expect(markdown).toContain('name: "Shadow Step"')
+  })
+
   it('writes monsters to the configured bestiary folder and skips existing notes', async () => {
     const created: string[] = []
     const vault: MonsterVault = {
