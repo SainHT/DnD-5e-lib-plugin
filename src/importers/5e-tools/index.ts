@@ -48,6 +48,31 @@ export { findImportFiles, readImportFiles, IMPORT_CATEGORIES, type VaultAdapter 
 export { importFeats, type FeatImportReport, type FeatVault } from './importers/featImporter'
 export { mapFeat } from './mappers/Feats/featMapper'
 export { importSpells, type SpellImportReport, type SpellVault } from './importers/spellImporter'
+export { importMonsters, type MonsterImportReport, type MonsterVault } from './importers/monsterImporter'
+export { mapMonster, preprocessMonsterTags } from './mappers/Beastiary/monsterMapper'
+export { buildMonsterMarkdown, type MonsterMarkdownData } from './mappers/Beastiary/monsterMarkdownBuilder'
+export {
+  alignmentName,
+  armorClass,
+  challengeRating,
+  crToXp,
+  entriesText,
+  gearText,
+  hitDice,
+  hitPoints,
+  initiativeString,
+  legendaryDescription,
+  mergeSpellcasting,
+  monsterType,
+  numericRows,
+  proficiencyBonus,
+  sizeName,
+  slugTag,
+  sourceForMonster,
+  titleJoin,
+  walkSpeed,
+  type MonsterEntry,
+} from './mappers/Beastiary/monsterHelpers'
 export { mapSpell, preprocessSpellTags } from './mappers/Spells/spellMapper'
 export { buildSpellMarkdown, type SpellMarkdownData } from './mappers/Spells/spellMarkdownBuilder'
 export {
