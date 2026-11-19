@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_NOTE_FOLDERS } from '../../../src/platform'
-import { importSpells, mapSpell, type SpellVault } from '../../../src/importers/5e-tools'
+import { DEFAULT_NOTE_FOLDERS } from '../../../../src/platform'
+import { importSpells, mapSpell, type SpellVault } from '../../../../src/importers/5e-tools'
 
 const acidArrow = {
   name: "Melf's Acid Arrow",

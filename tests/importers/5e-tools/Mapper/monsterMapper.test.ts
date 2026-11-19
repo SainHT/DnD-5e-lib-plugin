@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_NOTE_FOLDERS } from '../../../src/platform'
+import { DEFAULT_NOTE_FOLDERS } from '../../../../src/platform'
 import {
   importMonsters,
   mapMonster,
   preprocessMonsterTags,
   type MonsterVault,
-} from '../../../src/importers/5e-tools'
+} from '../../../../src/importers/5e-tools'
 
 const lich = {
   name: 'Lich',
