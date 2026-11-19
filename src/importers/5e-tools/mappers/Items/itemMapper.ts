@@ -8,7 +8,7 @@
 import { mappedNote } from '../../markdown'
 import type { FiveEToolsRecord, MappedNote } from '../../types'
 import { mapWeapon } from './Weapons/weaponMapper'
-import { mapArmorOrShield } from './Armor/armorShieldMapper'
+import { mapArmorOrShield } from './Armor/armorMapper'
 import { mapAdventuringGear } from './Gear/adventuringGearMapper'
 import { mapTool } from './Tools/toolMapper'
 import { mapOtherItem } from './otherMapper'
@@ -74,7 +74,9 @@ export function isMagicItem(record: Record<string, unknown>): boolean {
 export function itemKind(record: Record<string, unknown>): ItemKind {
   if (record.weapon === true || record.weaponCategory !== undefined) return 'Weapons'
   const type = typeof record.type === 'string' ? record.type.split('|', 1)[0]?.trim().toUpperCase() ?? '' : ''
-  if (type === 'A' || type === 'S' || type === 'SH') return 'Armor and Shield'
+  if (type === 'A' || type === 'S' || type === 'SH' || type === 'LA' || type === 'MA' || type === 'HA') {
+    return 'Armor and Shield'
+  }
   if (typeof record.armor === 'boolean' && record.armor) return 'Armor and Shield'
   if (typeof record.axe === 'boolean' || typeof record.bow === 'boolean') return 'Weapons'
   if (type === 'AT' || type === 'T' || type === 'INS' || type === 'GS') return 'Tools'
