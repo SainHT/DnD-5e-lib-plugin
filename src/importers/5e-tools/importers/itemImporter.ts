@@ -4,7 +4,7 @@
 import { resolveRuleFolder, type NoteFoldersSettings } from '../../../platform'
 import { slugForNote } from './../markdown'
 import type { VaultAdapter } from './../fileHandler'
-import { mapItem } from './../mappers/Items/itemMapper'
+import { mapItem, shouldExcludeItem, isTreasureItem } from './../mappers/Items/itemMapper'
 import type { FiveEToolsRecord } from './../types'
 
 /** Writable vault contract required by item import. */
@@ -65,6 +65,10 @@ export async function importItems(
   let imported = 0
   let skipped = 0
   for (const record of recordsValue.filter(isCurrentItem) as FiveEToolsRecord[]) {
+    if (shouldExcludeItem(record) || isTreasureItem(record)) {
+      skipped += 1
+      continue
+    }
     const note = mapItem(record)
     const folder = resolveRuleFolder(note.kind === 'magicItem' ? 'magic-items' : 'items', folders)
     const path = `${folder}/${slugForNote(note.name)}.md`

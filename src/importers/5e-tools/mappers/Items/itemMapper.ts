@@ -9,9 +9,9 @@ import { mappedNote } from '../../markdown'
 import type { FiveEToolsRecord, MappedNote } from '../../types'
 import { mapWeapon } from './Weapons/weaponMapper'
 import { mapArmorOrShield } from './Armor/armorMapper'
-import { mapAdventuringGear } from './Gear/adventuringGearMapper'
+import { mapAdventuringGear } from './Gear/GearMapper'
 import { mapTool } from './Tools/toolMapper'
-import { mapOtherItem } from './otherMapper'
+import { mapOtherItem } from './otherItemMapper'
 
 /** Supported mundane item-kind categories. */
 export type ItemKind =
@@ -19,7 +19,29 @@ export type ItemKind =
   | 'Weapons'
   | 'Adventuring gear'
   | 'Tools'
+  | 'Treasure'
   | 'Other'
+
+/** 5etools rule-set era labels that are outside the supported item importer. */
+const EXCLUDED_ERAS: readonly string[] = ['futuristic', 'modern', 'renaissance']
+
+/** 5etools type codes that identify weapons and ammunition. */
+const WEAPON_TYPE_CODES: ReadonlySet<string> = new Set(['M', 'R', 'AF', 'A', 'FIREARM'])
+
+/** 5etools type codes that identify body armor and shields. */
+const ARMOR_TYPE_CODES: ReadonlySet<string> = new Set(['LA', 'MA', 'HA', 'S', 'SH'])
+
+/** 5etools type codes that identify tools and instruments. */
+const TOOL_TYPE_CODES: ReadonlySet<string> = new Set(['AT', 'GS', 'INS', 'T', 'TK'])
+
+/** 5etools type codes that identify Adventuring Gear and related goods. */
+const GEAR_TYPE_CODES: ReadonlySet<string> = new Set([
+  'G', 'EXP', 'FD', 'FOOD', 'MNT', 'P', 'POT', 'RG', 'RD', 'SC', 'SCF', 'ST',
+  'TAH', 'WD', 'WAND', 'AMMO', 'POTION', 'RING', 'ROD', 'SCROLL', 'STAFF',
+])
+
+/** 5etools type codes that identify treasure records. */
+const TREASURE_TYPE_CODES: ReadonlySet<string> = new Set(['TB', 'TG', 'TA', 'TC', 'TGEM'])
 
 /**
  * Maps one raw item and routes it by rarity and mundane item kind.
@@ -72,16 +94,88 @@ export function isMagicItem(record: Record<string, unknown>): boolean {
  * @returns One of the supported mundane item categories.
  */
 export function itemKind(record: Record<string, unknown>): ItemKind {
-  if (record.weapon === true || record.weaponCategory !== undefined) return 'Weapons'
   const type = typeof record.type === 'string' ? record.type.split('|', 1)[0]?.trim().toUpperCase() ?? '' : ''
-  if (type === 'A' || type === 'S' || type === 'SH' || type === 'LA' || type === 'MA' || type === 'HA') {
+  if (TREASURE_TYPE_CODES.has(type) || isTreasureItem(record)) return 'Treasure'
+  if (WEAPON_TYPE_CODES.has(type) || record.ammunition === true || record.firearm === true
+      || typeof record.firearm === 'boolean' && record.firearm) {
+    return 'Weapons'
+  }
+  if (ARMOR_TYPE_CODES.has(type) || typeof record.armor === 'boolean' && record.armor) {
     return 'Armor and Shield'
   }
-  if (typeof record.armor === 'boolean' && record.armor) return 'Armor and Shield'
-  if (typeof record.axe === 'boolean' || typeof record.bow === 'boolean') return 'Weapons'
-  if (type === 'AT' || type === 'T' || type === 'INS' || type === 'GS') return 'Tools'
-  if (type === 'G' || type === 'AMMO' || type === 'EXP' || type === 'FOOD' || type === 'P' || type === 'SC') {
+  if (TOOL_TYPE_CODES.has(type)) return 'Tools'
+  if (GEAR_TYPE_CODES.has(type)
+    || typeof record.poison === 'boolean' && record.poison
+    || typeof record.potion === 'boolean' && record.potion
+    || typeof record.focus === 'boolean' && record.focus) {
     return 'Adventuring gear'
   }
   return 'Other'
+}
+
+/**
+ * Determines whether a record belongs to a Treasure subcategory.
+ *
+ * @param record Raw 5etools item record.
+ * @returns True for trade bars, trade goods, art objects, coinage, and gemstones.
+ */
+export function isTreasureItem(record: Record<string, unknown>): boolean {
+  const type = typeof record.type === 'string' ? record.type.split('|', 1)[0]?.trim().toUpperCase() ?? '' : ''
+  const treasureLabel = type.replace(/[^A-Z]/g, '')
+  if (TREASURE_TYPE_CODES.has(type) || TREASURE_TYPE_CODES.has(treasureLabel)) return true
+  if (/^(TRADE (BAR|GOOD)|TREASURE(?:\s*\(|$))/i.test(type)) return true
+
+  const category = [
+    record.category,
+    record.subCategory,
+    record.treasure,
+  ].flatMap(value => typeof value === 'string' ? [value] : [])
+  return category.some(value => /^(trade (bar|good)|treasure(?:\s*\(|$))/i.test(value.trim()))
+}
+
+/**
+ * Returns the strict routing category for an item record.
+ *
+ * Excluded era records and Treasure records receive explicit routing outcomes
+ * instead of being silently treated as generic items.
+ *
+ * @param record Raw 5etools item record.
+ * @returns `Excluded`, `Treasure`, or one of the supported item-kind names.
+ */
+export function routeItemCategory(record: Record<string, unknown>): 'Excluded' | ItemKind {
+  if (shouldExcludeItem(record)) return 'Excluded'
+  return itemKind(record)
+}
+
+/**
+ * Compatibility alias for routing an item to its strict category.
+ *
+ * @param record Raw 5etools item record.
+ * @returns Strict routing category or `Excluded`.
+ */
+export function routeItemKind(record: Record<string, unknown>): 'Excluded' | ItemKind {
+  return routeItemCategory(record)
+}
+
+/**
+ * Checks whether an item belongs to a disallowed time period or rule set.
+ *
+ * Era exclusion is based only on the explicit `age` field.
+ *
+ * @param record Raw 5etools item record.
+ * @returns True for Futuristic, Modern, or Renaissance content.
+ */
+export function shouldExcludeItem(record: Record<string, unknown>): boolean {
+  if (typeof record.age !== 'string') return false
+  return EXCLUDED_ERAS.includes(record.age.trim().toLowerCase())
+}
+
+/**
+ * Compatibility alias for era-based item exclusion.
+ *
+ * @param record Raw 5etools item record.
+ * @returns True when the item is Futuristic, Modern, or Renaissance.
+ */
+export function isExcludedItem(record: Record<string, unknown>): boolean {
+  return shouldExcludeItem(record)
 }
