@@ -66,4 +66,24 @@ describe('item category router', () => {
     await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 2 })
     expect(created).toEqual(['SRD 5.2.1/items/unknown-token.md'])
   })
+
+  it('skips magic items during mundane item import', async () => {
+    const created: string[] = []
+    const vault: ItemVault = {
+      exists: async () => false,
+      list: async () => ({ files: [], folders: [] }),
+      read: async () => JSON.stringify({
+        item: [
+          { name: 'Shield', source: 'XPHB', type: 'S|XPHB', rarity: 'none' },
+          { name: 'Shield of Test', source: 'XPHB', type: 'S|XPHB', rarity: 'rare' },
+        ],
+      }),
+      create: async path => {
+        created.push(path)
+      },
+    }
+
+    await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 1 })
+    expect(created).toEqual(['SRD 5.2.1/items/shield.md'])
+  })
 })
