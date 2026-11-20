@@ -20,6 +20,10 @@ import {
   seedFromSheet,
   setXp,
   writeVitalsToNote,
+  DETAILS_KEY,
+  readCharacterDetails,
+  writeCharacterDetails,
+  DEFAULT_DDB_SETTINGS,
 } from '../../characterModel'
 import { withAtlasMirror } from './atlasMirror'
 import { fromYaml, parseNote, serialiseNote, setFence, toYaml } from '../../platform'
@@ -264,10 +268,14 @@ export function renderVaultCharacterNote(
   syncedAt: string,
 ): string {
   const { frontmatter, body } = parseNote(renderNote(sheet, settings, existing, syncedAt))
-  return serialiseNote({
+  const text = serialiseNote({
     frontmatter,
     body: setFence(body, VAULT_CHARACTER_FENCE, persistedVaultCharacter(json)),
   })
+  // The builder's details (MYDND-216), in the same write: frontmatter and the
+  // body's details region, never the fence. Absent, the note's are left alone.
+  const details = json[DETAILS_KEY]
+  return details && typeof details === 'object' ? writeCharacterDetails(text, details) : text
 }
 
 /** Everything a conversion writes, built by the caller from the reviewed plan (MYDND-105). */
@@ -393,19 +401,29 @@ export interface CharacterStore {
   ): Promise<ConversionResult>
 }
 
-export function createCharacterStore(vault: StateVault, now: () => Date = () => new Date()): CharacterStore {
+export function createCharacterStore(
+  vault: StateVault,
+  now: () => Date = () => new Date(),
+  // The character folder from the plugin's live settings, read on every search
+  // (MYDND-226). A character is searched for under it, at any depth.
+  folder: () => string = () => DEFAULT_DDB_SETTINGS.folder,
+): CharacterStore {
+  /** Every note under the character folder: where a character is looked for. */
+  const characterNotes = () => vault.notesUnder(folder())
+
   /**
    * The note carrying this D&D Beyond id, searched by **frontmatter**.
    *
-   * A character is identified by `vc_ddb_id`, never by its folder or filename —
-   * so a player who renames `Gibbs.md` to `Gibbs the Bold.md` is re-synced in
-   * place. Resolving by the sanitised sheet name instead, which is what the
+   * A character is identified by `vc_ddb_id`, never by its filename — so a
+   * player who renames `Gibbs.md` to `Gibbs the Bold.md`, or files it in
+   * `characters/party/`, is re-synced in place. A note moved **out of** the
+   * character folder is no longer found (MYDND-226, ADR 0013). Resolving by the sanitised sheet name instead, which is what the
    * plugin this replaces did when not invoked from the open note, would create
    * a second file beside the first and leave two notes claiming one character.
    */
   const findByDdbId = (ddbId: string): string | null => {
     const want = String(ddbId)
-    for (const note of vault.allNotes()) {
+    for (const note of characterNotes()) {
       if (String(note.frontmatter[DDB_ID_KEY] ?? '') === want) return note.path
     }
     return null
@@ -486,7 +504,7 @@ export function createCharacterStore(vault: StateVault, now: () => Date = () => 
 
   const findByDdbSource = (ddbId: string): string | null => {
     const want = String(ddbId)
-    for (const note of vault.allNotes()) {
+    for (const note of characterNotes()) {
       if (isLocalId(note.frontmatter[DDB_ID_KEY]) && String(note.frontmatter[DDB_SOURCE_KEY] ?? '') === want) {
         return note.path
       }
@@ -537,13 +555,14 @@ export function createCharacterStore(vault: StateVault, now: () => Date = () => 
   const readVaultCharacter = async (path: string): Promise<VaultCharacterJson> => {
     const markdown = await vault.read(path)
     if (markdown === null) throw new Error('the note no longer exists')
-    return readVaultCharacterOrThrow(markdown)
+    // With its details (MYDND-216), so the builder's edit shows and keeps them.
+    return { ...readVaultCharacterOrThrow(markdown), [DETAILS_KEY]: readCharacterDetails(markdown) }
   }
 
   const applyAtlasSettings = async (
     settings: Pick<CharacterNoteSettings, 'exposeToAtlas' | 'atlasTemplateId'>,
   ): Promise<number> => {
-    const paths = vault.allNotes().filter(n => n.frontmatter[DDB_ID_KEY] !== undefined).map(n => n.path)
+    const paths = characterNotes().filter(n => n.frontmatter[DDB_ID_KEY] !== undefined).map(n => n.path)
     let changed = 0
     for (const path of paths) {
       let moved = false

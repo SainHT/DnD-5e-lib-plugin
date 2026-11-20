@@ -197,16 +197,17 @@ const ARMOR_LABEL: Record<string, string> = {
 }
 
 /** The Defences tab's proficiency lists, in the web sheet's own wording. */
-function proficienciesOf(derived: Derived, json: VaultCharacterJson): SheetProficiencies {
+function proficienciesOf(derived: Derived, json: VaultCharacterJson, speciesLanguages: readonly string[]): SheetProficiencies {
   const languages = json.languages ?? []
   return {
     armor: (derived.proficiency?.armor ?? []).map(a => ARMOR_LABEL[a] ?? a),
     weapons: weaponProficiencyLabels(derived.proficiency?.weapons ?? []),
     // A background's tools are no effect, so `derived` cannot have them
     // (MYDND-171). `toolName` is what makes the two read as one proficiency.
-    tools: [...new Set([...(derived.toolProficiencies ?? []), ...(json.backgroundTools ?? []).map(t => toolName(t) as string)])].sort(),
-    // A character saved before the question was asked stays blank, not guessed.
-    languages: languages.length > 0 ? ['Common', ...languages] : [],
+    tools: [...new Set([...(derived.toolProficiencies ?? []), ...(json.backgroundTools ?? []).map(t => toolName(t))])].sort(),
+    // A character saved before the question was asked stays blank, not guessed;
+    // the species' own (MYDND-243) are known either way, so they still show.
+    languages: [...new Set([...(languages.length > 0 ? ['Common'] : []), ...speciesLanguages, ...languages])],
   }
 }
 
@@ -314,7 +315,7 @@ function classResources(derived: Derived): SheetResource[] {
  */
 export function projectVaultSheet(
   json: VaultCharacterJson,
-  baked: Pick<BakeResult, 'effects' | 'proficiencyBaseline'>,
+  baked: Pick<BakeResult, 'effects' | 'proficiencyBaseline'> & Partial<Pick<BakeResult, 'languages'>>,
   ddbId: string,
   casters?: readonly CasterEntry[],
 ): Sheet {
@@ -395,7 +396,7 @@ export function projectVaultSheet(
     },
     senses: (derived.senses ?? []).map(s => ({ name: s.sense, range: s.range, source: s.source ?? null })),
     speeds: { ...(derived.speeds ?? {}) },
-    proficiencies: proficienciesOf(derived, json),
+    proficiencies: proficienciesOf(derived, json, baked.languages ?? []),
     ...(derived.bonusCantrips ? { bonus_cantrips: derived.bonusCantrips } : {}),
     ...(listClasses.length > 0 ? { spell_list_classes: listClasses } : {}),
   }

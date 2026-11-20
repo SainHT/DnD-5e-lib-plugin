@@ -3,6 +3,8 @@
 
 import { effectSourceIds, flattenResolvedEffects, proficiencyBaseline } from '@vault/derive/effectBaking.js'
 import { originFeatEffects } from '@vault/derive/originFeatChoices.js'
+import { speciesProficiencies, type DraftRace } from '@vault/derive/speciesChoices.js'
+import { adjustmentEffects } from './adjustments'
 
 import type {
   ClassCatalog,
@@ -17,14 +19,6 @@ import type {
 import { additionalSpellsEffects, additionalSpellsKey, additionalSpellsOf, spellLevelLookup } from './additionalSpells'
 import type { VaultCharacterJson } from './fence'
 import { abilityBonusSources, effectsToStore } from './finals'
-
-// `@vault/derive` is untyped JavaScript, so a call into it answers `any`.
-// This says what `effectSourceIds` answers here (MYDND-189).
-const sourceIds: (json: VaultCharacterJson) => {
-  featIds: string[]
-  raceId: string | null
-  classLevels: Array<{ classId: string; subclassId: string | null; level: number }>
-} = effectSourceIds
 
 /**
  * Baking a Vault character's effects from the catalogs (MYDND-23).
@@ -83,6 +77,12 @@ export interface BakeResult {
    * which bonuses D&D Beyond's finals already contain (`./finals.ts`).
    */
   abilityBonusSources: Array<string | null>
+  /**
+   * The species' languages, fixed and picked (MYDND-243). Beside the effects
+   * rather than in them, because no effect type carries a language; the
+   * projection adds them to the background's.
+   */
+  languages: string[]
   /**
    * Ids the json names that no note answers to, as `kind:id`.
    *
@@ -178,7 +178,7 @@ export function heldFeatEffects(
   return held.flatMap(({ owner, featId, choices, abilityBonus }) => {
     const feat = feats.find(f => f.id === featId)
     if (!feat) return []
-    const effects = originFeatEffects(feat, choices as object | null, {
+    const effects = originFeatEffects(feat, choices, {
       abilityBonus: typeof abilityBonus === 'string' ? abilityBonus : null,
       skillProficiencies: [...skillProficiencies],
     }) as Array<Record<string, unknown>>
@@ -250,7 +250,7 @@ const upToLevel = (features: readonly FenceFeature[] | undefined, level: number)
  */
 export async function bakeVaultCharacter(json: VaultCharacterJson, catalogs: BakeCatalogs): Promise<BakeResult> {
   const missing: string[] = []
-  const { featIds, raceId, classLevels } = sourceIds(json)
+  const { featIds, raceId, classLevels } = effectSourceIds(json)
 
   const feats: Array<Record<string, unknown>> = []
   for (const id of new Set(featIds)) {
@@ -356,21 +356,29 @@ export async function bakeVaultCharacter(json: VaultCharacterJson, catalogs: Bak
     originFeat: json.originFeat,
     raceChoice: json.race,
     totalLevel: (json.classes ?? []).reduce((sum, c) => sum + (c?.level ?? 0), 0),
-  }) as Array<Record<string, unknown>>
+  })
 
   return {
-    effects: effectsToStore(json, [
-      ...raw,
-      ...granted,
-      ...heldFeatEffects(json.featureChoices, feats, {
-        skillProficiencies: [
-          ...(json.skillProficiencies ?? []),
-          ...raw.filter(e => e.type === 'skill_proficiency' && typeof e.skill === 'string').map(e => e.skill as string),
-        ],
-      }),
-    ]),
+    effects: [
+      ...effectsToStore(json, [
+        ...raw,
+        ...granted,
+        ...heldFeatEffects(json.featureChoices, feats, {
+          skillProficiencies: [
+            ...(json.skillProficiencies ?? []),
+            ...raw.filter(e => e.type === 'skill_proficiency' && typeof e.skill === 'string').map(e => e.skill as string),
+          ],
+        }),
+      ]),
+      // The player's own modifier lines (MYDND-216). After `effectsToStore`, not
+      // in it: a converted character's finals never contain them (the
+      // conversion takes them out of the base), so none may be dropped as
+      // "already inside" the scores.
+      ...adjustmentEffects(json),
+    ],
     proficiencyBaseline: proficiencyBaseline({ classRows, featureLists }),
     abilityBonusSources: abilityBonusSources(raw),
+    languages: race ? speciesProficiencies(race, json.race as DraftRace | null | undefined, 'language') : [],
     missing,
   }
 }

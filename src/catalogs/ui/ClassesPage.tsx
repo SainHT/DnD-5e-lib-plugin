@@ -4,6 +4,7 @@
 import { useState } from 'react'
 
 import {
+  booksInPlay,
   featuresByLevel,
   groupClasses,
   groupSubclasses,
@@ -23,6 +24,7 @@ import {
   useElementWidth,
   useCatalogRows,
   useRouteLink,
+  useSourcesOff,
   Markdown,
 } from '../../platform/host'
 import { useRoster } from '../../characters/host'
@@ -31,6 +33,8 @@ import { ClassProgression } from './ClassProgression'
 import { ClassTile, SubclassCard } from './ClassCards'
 import { MAX_COMPARED, SubclassCompare } from './SubclassCompare'
 import { SubclassDetail } from './SubclassDetail'
+import { HiddenNotes } from './HiddenNotes'
+import { NoteProblems } from '../../choices/host'
 
 /**
  * Classes and their subclasses — boards A to C of the "Classes & Builder
@@ -52,8 +56,11 @@ import { SubclassDetail } from './SubclassDetail'
  * class rather than becoming a seventh catalog — 680 notes nobody browses
  * alphabetically.
  *
- * Departures from the canvas: the rail has three groups (core, other official,
- * third-party) rather than naming one third-party publisher; "Pick for Ilsa" is
+ * The rail's shelves are the builder's (MYDND-216, `compendium/model/shelves`):
+ * Core, Official, one per third-party book, then Legacy (5e), each keyed by its
+ * sources so a later per-table "books in play" setting filters both at once.
+ *
+ * Departures from the canvas: "Pick for Ilsa" is
  * not drawn, because choosing a subclass is the level-up's job and writes the
  * character; the narrow pane has no Compare (four columns do not fit 400px).
  */
@@ -74,6 +81,9 @@ export default function ClassesPage() {
   const link = useRouteLink()
   const rows = useCatalogRows(() => compendium.classes.list())
   const subclassRows = useCatalogRows(() => compendium.subclasses.list())
+  // Both catalogs' hidden notes, in one banner: the page shows them together.
+  const hiddenClasses = useCatalogRows(() => compendium.classes.hidden())
+  const hiddenSubclasses = useCatalogRows(() => compendium.subclasses.hidden())
   const { entries: roster } = useRoster()
 
   const [view, setView] = useState<View>('class')
@@ -95,18 +105,27 @@ export default function ClassesPage() {
   const wide = width === 0 || width >= WIDE_WIDTH
   const shelfBeside = width === 0 || width >= SHELF_BESIDE_WIDTH
 
-  const groups = groupClasses(catalog.filtered)
+  // The rail leaves out the books the campaign turned off (MYDND-219), but
+  // never the class on show: a link to one still opens it.
+  const sourcesOff = useSourcesOff()
+  const groups = groupClasses(booksInPlay(catalog.filtered, sourcesOff, [catalog.selectedId]))
   // Wide, a class is always open — the first core class until one is chosen —
   // because the page is the class. Narrow, nothing is until one is tapped.
   const fallback = wide ? (groups[0]?.rows[0] ?? null) : null
   const cls = rows.find(c => c.id === catalog.selectedId) ?? fallback
-  const subs = cls ? subclassesOf(subclassRows, cls, rows) : []
+  // Its subclasses leave out the same books (MYDND-223), but never the one open
+  // or one being compared: a column does not vanish under the reader.
+  const subs = cls
+    ? booksInPlay(subclassesOf(subclassRows, cls, rows), sourcesOff, [subId, ...(comparing?.ids ?? [])])
+    : []
   const subGroups = cls ? groupSubclasses(cls, subs) : []
   const openSub = subId ? (subs.find(s => s.id === subId) ?? null) : null
 
   const { detail, loading } = useDetail(compendium.classes, cls?.id ?? null)
   const prose = detail ? stripPreamble(detail.prose) : ''
   const progression = prose ? readProgression(prose) : null
+  const mistakes = <NoteProblems kind="class" fence={detail?.fence ?? null} />
+  const hiddenNotes = <HiddenNotes hidden={[...hiddenClasses, ...hiddenSubclasses]} noun="class or subclass" />
 
   // Whose level to mark: anyone in the roster with a level in this class.
   const players = cls
@@ -268,6 +287,8 @@ export default function ClassesPage() {
               </div>
             </header>
             <div className="my-dnd-vault__scroll">
+              {hiddenNotes}
+              {mistakes}
               {narrowTab === 'levels' ? (
                 progression ? (
                   <NarrowLevels progression={progression} hereLevel={who?.level ?? null} hereName={who?.name ?? null} />
@@ -307,6 +328,7 @@ export default function ClassesPage() {
               {search}
             </header>
             <div className="my-dnd-vault__scroll">
+              {hiddenNotes}
               {empty ??
                 groups.map(g => (
                   <section key={g.id} aria-labelledby={`cg-${g.id}`}>
@@ -410,6 +432,8 @@ export default function ClassesPage() {
                 </div>
                 {stats}
               </div>
+              {hiddenNotes}
+              {mistakes}
 
               <div className="bst-class-legend">
                 <h4 className="bst-label">Progression</h4>

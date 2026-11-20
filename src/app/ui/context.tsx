@@ -30,11 +30,13 @@ export function DomainProviders({
   initialCampaignId,
   onCampaignChange,
   subscribeCampaign,
+  campaignsReadOnly,
   importCharacter,
   saveVaultCharacter,
   rebuildVaultCharacter,
   ddb,
   QuirkList,
+  pickPortrait,
   privateProviders,
   srdNotes,
   importFiveETools,
@@ -45,6 +47,8 @@ export function DomainProviders({
   initialCampaignId: string | null
   onCampaignChange: (id: string | null) => void
   subscribeCampaign?: (listener: (id: string | null) => void) => () => void
+  /** A player on the web build reads the campaign's rules and cannot change them (MYDND-223). */
+  campaignsReadOnly?: boolean
   importCharacter?: CharactersHost['importCharacter']
   saveVaultCharacter?: CharactersHost['saveVaultCharacter']
   rebuildVaultCharacter?: CharactersHost['rebuildVaultCharacter']
@@ -56,6 +60,8 @@ export function DomainProviders({
    */
   ddb?: NonNullable<CharactersHost['ddb']>
   QuirkList?: NonNullable<CharactersHost['QuirkList']>
+  /** The builder's portrait picker (MYDND-216); the plugin's only, never the web build's. */
+  pickPortrait?: NonNullable<CharactersHost['pickPortrait']>
   /**
    * The private domains' providers, crafting, harvesting and the D&D Beyond
    * conversion, wrapped around the pages (MYDND-200). Opaque on purpose: this
@@ -81,6 +87,7 @@ export function DomainProviders({
       initialCampaignId={initialCampaignId}
       onCampaignChange={onCampaignChange}
       subscribeCampaign={subscribeCampaign}
+      campaignsReadOnly={campaignsReadOnly}
     >
       {/* The whole `Content` is a `Compendium` plus the roster; handing it over
           as it is keeps one object per mount, which `useCatalogRows` keys on. */}
@@ -95,6 +102,7 @@ export function DomainProviders({
           rebuildVaultCharacter={rebuildVaultCharacter}
           ddb={ddb}
           QuirkList={QuirkList}
+          pickPortrait={pickPortrait}
         >
           <GmProvider gm={gm}>
             {/* The catalogs' one slot, filled with gm's hook (MYDND-200). gm is

@@ -114,15 +114,17 @@ export class VaultItemView extends ItemView {
     // `styles/index.css` unpads (the directory refuses inline styles): the stylesheet can't reach it, because the scoping post-pass
     // prefixes every selector with `.my-dnd-vault`, and this is its parent.
     this.contentEl.addClass('my-dnd-vault-host')
-    const host = this.contentEl.createDiv({ cls: 'my-dnd-vault' })
+    // `--frame`: the root that carries `App` and so `<main>`, which the
+    // stylesheet paints the page colour on (frame.md, "The ember background").
+    const host = this.contentEl.createDiv({ cls: ['my-dnd-vault', 'my-dnd-vault--frame'] })
     this.host = host
     this.applyLook(this.plugin.settings.vaultLook)
     this.root = createRoot(host)
     // Built here rather than in the plugin: the readers and writers are
     // stateless and hold no cache, so one per view costs nothing and keeps
     // `App` out of main.ts.
-    this.content = createVaultContent(this.app, this.plugin.noteFolders)
-    this.state = createVaultState(this.app, this.plugin.noteFolders)
+    this.content = createVaultContent(this.app, this.plugin.noteFolders, this.plugin.characterFolder)
+    this.state = createVaultState(this.app, this.plugin.noteFolders, this.plugin.characterFolder)
     this.render()
   }
 

@@ -3,6 +3,7 @@
 // it becomes.
 
 import { VAULT_SKILLS } from '@vault/derive/vaultDerive.js'
+import { versionOptions } from '@vault/derive/speciesChoices.js'
 
 import { toVaultJson, blankDraft, raceData, type BuilderDraft, type ClassSource } from './draft'
 import type {
@@ -24,7 +25,7 @@ import type {
   DdbPayload,
   Sheet,
 } from '../../characterModel'
-import { buildSheet } from '../../characterModel'
+import { buildSheet, type AbilityAdjustment, type AbilityOverrides } from '../../characterModel'
 
 /**
  * A D&D Beyond payload, turned into a Vault character (MYDND-105).
@@ -156,6 +157,13 @@ export interface ConversionPlan {
   abilityScores: Record<AbilityKey, number>
   /** Abilities a worn item raises on D&D Beyond: `[ability, with, without]`. */
   itemRaisedScores: Array<{ ability: AbilityKey; withItems: number; without: number }>
+  /**
+   * D&D Beyond's "Other modifier" per score (`bonusStats`), as the builder's
+   * modifier lines (MYDND-216). Out of `abilityScores`, so it is not counted twice.
+   */
+  abilityAdjustments: AbilityAdjustment[]
+  /** D&D Beyond's "Override score" (`overrideStats`), as the builder's overrides. */
+  abilityOverrides: AbilityOverrides
   saveProficiencies: AbilityKey[]
   /** Vault skill slugs (`sleight_of_hand`). */
   skillProficiencies: string[]
@@ -169,13 +177,92 @@ export interface ConversionPlan {
   ddbSheet: Sheet
   ddbBonusHp: number
   xp: number | null
+  /**
+   * What the payload says about the species' choices (MYDND-242): the answers
+   * to its racial-trait choices, its trait and action names, its resistances.
+   * Matched against the species note's `versions` once its fence is read, so a
+   * Red Dragonborn converts as Red. Optional: a plan built before it has none.
+   */
+  speciesHints?: SpeciesHints
+}
+
+/** The species-side strings of a D&D Beyond payload, read once at plan time. */
+export interface SpeciesHints {
+  /** Choice answers, racial trait names and species action names. */
+  labels: string[]
+  /** Damage types the species resists on D&D Beyond, lowercase. */
+  resistances: string[]
+}
+
+/**
+ * The species-side strings of a payload. A choice's answer resolves through
+ * `choiceDefinitions`, as `featurePicks` does; one with no definition is
+ * skipped rather than read as a number.
+ */
+export function speciesHints(payload: DdbPayload): SpeciesHints {
+  const options = new Map<string, Map<number, string>>()
+  for (const def of payload?.choices?.choiceDefinitions ?? []) {
+    if (!def?.id) continue
+    const labels = new Map<number, string>()
+    for (const o of def.options ?? []) if (typeof o?.id === 'number' && o.label) labels.set(o.id, o.label)
+    options.set(def.id, labels)
+  }
+  const labels: string[] = []
+  for (const c of payload?.choices?.race ?? []) {
+    if (typeof c?.optionValue !== 'number') continue
+    const label = options.get(`${c.componentTypeId}-${c.type}`)?.get(c.optionValue)
+    if (label) labels.push(label)
+  }
+  for (const t of payload?.race?.racialTraits ?? []) if (t?.definition?.name) labels.push(t.definition.name)
+  for (const a of payload?.actions?.race ?? []) if (a?.name) labels.push(a.name)
+  const resistances = (payload?.modifiers?.race ?? [])
+    .filter(m => String(m?.type ?? '').toLowerCase() === 'resistance' && m?.subType)
+    .map(m => String(m?.subType).toLowerCase())
+  return { labels, resistances: [...new Set(resistances)] }
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * The species version a D&D Beyond character already chose, or null.
+ *
+ * An option is named by its own name less a trailing "Ancestry" ("Fire Giant"),
+ * and by the pools it owns ("Fire's Burn"), each matched as whole words in the
+ * payload's labels. More than one match — or none — is narrowed by the
+ * resistances D&D Beyond grants, which tells Green from every other dragon but
+ * not Red from Gold or Brass. **Anything but one answer is no answer**: the
+ * Species step then asks, which beats guessing a dragon.
+ */
+export function versionFromDdb(
+  options: ReadonlyArray<{ name: string; effects: ReadonlyArray<Record<string, unknown>> }>,
+  hints: SpeciesHints | null | undefined,
+): string | null {
+  if (!hints || options.length === 0) return null
+  const needles = (o: (typeof options)[number]) => [
+    o.name.replace(/\s+Ancestry$/i, ''),
+    ...o.effects.filter(e => e.type === 'feature_resource' && typeof e.name === 'string').map(e => e.name as string),
+  ]
+  const named = options.filter(o =>
+    needles(o).some(n => {
+      const re = new RegExp(`(^|[^\\p{L}])${escapeRe(n)}($|[^\\p{L}])`, 'iu')
+      return hints.labels.some(l => re.test(l))
+    }),
+  )
+  if (named.length === 1) return named[0].name
+  const pool = named.length > 0 ? named : options
+  const resisted = new Set(hints.resistances)
+  const byResistance = pool.filter(o => {
+    const own = o.effects.filter(e => e.type === 'resistance').map(e => String(e.value ?? '').toLowerCase())
+    return own.length > 0 && own.every(v => resisted.has(v))
+  })
+  return byResistance.length === 1 ? byResistance[0].name : null
 }
 
 const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
 type AbilityKey = (typeof ABILITIES)[number]
 
 const skillSlugByName = new Map(
-  (VAULT_SKILLS as Array<{ name: string; slug: string }>).map(s => [s.name.toLowerCase(), s.slug]),
+  VAULT_SKILLS.map(s => [s.name.toLowerCase(), s.slug]),
 )
 
 /**
@@ -209,6 +296,39 @@ function withoutItemModifiers(payload: DdbPayload): DdbPayload {
   return { ...payload, modifiers: { ...mods, item: kept } }
 }
 
+/** D&D Beyond's stat ids, 1 to 6, in the order of `ABILITIES`. */
+const statAbility = (id: unknown): AbilityKey | null =>
+  typeof id === 'number' && id >= 1 && id <= 6 ? ABILITIES[id - 1] : null
+
+/**
+ * The payload without its per-score "Other modifier" and "Override score"
+ * (MYDND-216), so the base the conversion keeps is the score before them: they
+ * come across as the builder's own modifier lines and overrides instead, which
+ * the bake and derive add back.
+ */
+function withoutStatEdits(payload: DdbPayload): DdbPayload {
+  return { ...payload, bonusStats: [], overrideStats: [] }
+}
+
+/** `bonusStats` and `overrideStats` as modifier lines and overrides. */
+function statEditsOf(payload: DdbPayload): { adjustments: AbilityAdjustment[]; overrides: AbilityOverrides } {
+  const adjustments: AbilityAdjustment[] = []
+  for (const s of payload?.bonusStats ?? []) {
+    const ability = statAbility(s?.id)
+    if (ability && typeof s?.value === 'number' && Number.isInteger(s.value) && s.value !== 0) {
+      adjustments.push({ ability, value: s.value, reason: 'D&D Beyond: other modifier' })
+    }
+  }
+  const overrides: AbilityOverrides = {}
+  for (const s of payload?.overrideStats ?? []) {
+    const ability = statAbility(s?.id)
+    if (ability && typeof s?.value === 'number' && Number.isInteger(s.value) && s.value >= 1 && s.value <= 30) {
+      overrides[ability] = s.value
+    }
+  }
+  return { adjustments, overrides }
+}
+
 function scoresOf(sheet: Sheet): Record<AbilityKey, number> {
   const out = {} as Record<AbilityKey, number>
   for (const key of ABILITIES) out[key] = sheet.abilities.find(a => a.label === key.toUpperCase())?.score ?? 10
@@ -229,9 +349,12 @@ function currencyOf(sheet: Sheet): InventoryCurrency {
  */
 export function buildConversionPlan(payload: DdbPayload, ddbId: string, catalog: ConversionCatalog): ConversionPlan {
   const sheet = buildSheet(payload, ddbId)
-  const own = buildSheet(withoutItemModifiers(payload), ddbId)
+  const ownWithStats = buildSheet(withoutItemModifiers(payload), ddbId)
+  const own = buildSheet(withoutStatEdits(withoutItemModifiers(payload)), ddbId)
   const withItems = scoresOf(sheet)
   const abilityScores = scoresOf(own)
+  const ownScores = scoresOf(ownWithStats)
+  const { adjustments: abilityAdjustments, overrides: abilityOverrides } = statEditsOf(payload)
 
   // `baseName` rather than `fullName`, which carries the lineage ("Mark of
   // Passage Human"); the catalog holds the species.
@@ -282,14 +405,17 @@ export function buildConversionPlan(payload: DdbPayload, ddbId: string, catalog:
     name: sheet.name,
     avatarUrl: (payload?.decorations?.avatarUrl) ?? null,
     race,
+    speciesHints: speciesHints(payload),
     classes,
     background: backgroundName ? matchByName(backgroundName, catalog.backgrounds) : null,
     abilityScores,
-    itemRaisedScores: ABILITIES.filter(k => withItems[k] !== abilityScores[k]).map(k => ({
+    itemRaisedScores: ABILITIES.filter(k => withItems[k] !== ownScores[k]).map(k => ({
       ability: k,
       withItems: withItems[k],
-      without: abilityScores[k],
+      without: ownScores[k],
     })),
+    abilityAdjustments,
+    abilityOverrides,
     saveProficiencies: sheet.saves.filter(s => s.proficient).map(s => s.label.toLowerCase() as AbilityKey),
     skillProficiencies: sheet.skills
       .filter(s => s.proficient)
@@ -435,6 +561,12 @@ export function planToVaultJson(plan: ConversionPlan, sources: PlanSources, now:
           size: null,
           spellcastingAbility: null,
           cantrip: null,
+          // Giant Ancestry, Draconic Ancestry: carried over where the payload
+          // names one answer (MYDND-242), asked by the Species step otherwise.
+          version: versionFromDdb(
+            versionOptions(raceData(plan.race.chosen, sources.speciesFence)),
+            plan.speciesHints,
+          ),
         }
       : null,
     classes: matched.map(c => ({
@@ -446,6 +578,8 @@ export function planToVaultJson(plan: ConversionPlan, sources: PlanSources, now:
     background: asRef(plan.background?.chosen ?? null),
     abilityMethod: 'manual',
     abilityScores: { ...plan.abilityScores },
+    abilityAdjustments: [...(plan.abilityAdjustments ?? [])],
+    abilityOverrides: { ...(plan.abilityOverrides ?? {}) },
     backgroundBonuses: { primary: null, secondary: null },
     saveProficiencies: [...plan.saveProficiencies],
     skillProficiencies: classPicks,

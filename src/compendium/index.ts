@@ -14,7 +14,7 @@ export {
   type SubclassRow,
 } from './model/classes'
 export {
-  classGroupOf,
+  type ClassGroup,
   type FeatureCell,
   featuresByLevel,
   groupClasses,
@@ -25,6 +25,18 @@ export {
   readProgression,
   type SubclassGroupId,
 } from './model/classShelves'
+export {
+  booksInPlay,
+  booksOf,
+  isOfficialSource,
+  searchShelfRows,
+  type Shelf,
+  type ShelfKind,
+  type ShelfRow,
+  sourceShelfOf,
+  shelvesBySource,
+} from './model/shelves'
+export { sourceLabel, sourceMatches } from './model/sourceNames'
 export {
   CATALOG_KEYS,
   catalogCounts,
@@ -140,3 +152,5 @@ export {
 } from './model/spellShelves'
 export { SRD_PAYLOAD } from './store/srd/payload'
 export { describeSeedReport, inflateSrdArchive, type SeedReport, seedSrdNotes } from './store/srd/seed'
+export { DEFAULT_TEMPLATES_FOLDER, templateFolderProblem } from './model/homebrewTemplates'
+export { describeTemplatesReport, type TemplatesReport, writeHomebrewTemplates } from './store/templates'
