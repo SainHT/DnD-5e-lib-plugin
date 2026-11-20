@@ -125,8 +125,15 @@ export function weaponProperties(value: unknown): string[] {
 export function weaponMastery(value: unknown): string {
   const entries = Array.isArray(value) ? value : [value]
   for (const entry of entries) {
-    if (typeof entry !== 'string') continue
-    const name = entry.split('|', 1)[0]?.trim()
+    if (typeof entry === 'string') {
+      const name = entry.split('|', 1)[0]?.trim()
+      if (name) return name
+      continue
+    }
+    if (!entry || typeof entry !== 'object') continue
+    const mastery = entry as Record<string, unknown>
+    const uid = typeof mastery.uid === 'string' ? mastery.uid : ''
+    const name = uid.split('|', 1)[0]?.trim()
     if (name) return name
   }
   return ''

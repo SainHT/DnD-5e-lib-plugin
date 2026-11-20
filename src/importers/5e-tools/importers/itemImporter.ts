@@ -55,7 +55,9 @@ export async function importItems(
     ? container.item
     : Array.isArray(container.items)
       ? container.items
-      : null
+      : Array.isArray(container.baseitem)
+        ? container.baseitem
+        : null
   if (!recordsValue) throw new Error(`The JSON file has no item records: ${jsonPath}`)
   if (!recordsValue.every(record => record && typeof record === 'object'
     && typeof (record as Record<string, unknown>).name === 'string')) {

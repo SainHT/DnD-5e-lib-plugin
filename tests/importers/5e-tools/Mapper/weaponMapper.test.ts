@@ -7,6 +7,7 @@ import {
   type ItemVault,
   weaponDamageType,
   weaponProperties,
+  weaponMastery
 } from '../../../../src/importers/5e-tools'
 import { DEFAULT_NOTE_FOLDERS } from '../../../../src/platform'
 
@@ -61,6 +62,20 @@ describe('weapon mapper', () => {
     expect(weaponProperties(['F|XPHB', 'L|XPHB', 'T|XPHB', '2H|XPHB', 'A|XPHB', 'LD|XPHB']))
       .toEqual(['Finesse', 'Light', 'Thrown', 'Two-Handed', 'Ammunition', 'Loading'])
     expect(weaponDamageType('S')).toBe('Slashing')
+  })
+
+  it('parses string and object-form weapon masteries', () => {
+    expect(weaponMastery(['Nick|XPHB'])).toBe('Nick')
+    expect(weaponMastery([{ uid: 'Vex|XPHB', note: 'When you hit...' }])).toBe('Vex')
+
+    const markdown = mapWeapon({
+      ...dagger,
+      name: 'Vexing Dagger',
+      mastery: [{ uid: 'Vex|XPHB', note: 'When you hit...' }],
+      baseitem: [],
+    }).markdown
+    expect(markdown).toContain('mastery: Vex')
+    expect(markdown).toContain('mastery: Vex')
   })
 
   it('routes rarity and item kind correctly', () => {
