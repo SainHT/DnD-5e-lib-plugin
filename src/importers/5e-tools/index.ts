@@ -49,6 +49,78 @@ export { importFeats, type FeatImportReport, type FeatVault } from './importers/
 export { mapFeat } from './mappers/Feats/featMapper'
 export { importSpells, type SpellImportReport, type SpellVault } from './importers/spellImporter'
 export { importMonsters, type MonsterImportReport, type MonsterVault } from './importers/monsterImporter'
+export { importItems, type ItemImportReport, type ItemVault } from './importers/itemImporter'
+export {
+  mapItem,
+  mapMagicItem,
+  isMagicItem,
+  isExcludedItem,
+  isTreasureItem,
+  itemKind,
+  routeItemCategory,
+  routeItemKind,
+  shouldExcludeItem,
+  type ItemKind,
+} from './mappers/Items/itemMapper'
+export { mapOtherItem } from './mappers/Items/Other/otherItemMapper'
+export { buildOtherItemMarkdown } from './mappers/Items/Other/otherItemMarkdownBuilder'
+export {
+  cleanOtherItemTags,
+  otherItemCarryingCapacity,
+  otherItemCostCopper,
+  otherItemEntriesText,
+  otherItemExportHash,
+  otherItemSlug,
+  otherItemSpeed,
+  otherItemTags,
+  otherItemTypeName,
+  otherItemWeight,
+  sourceForOtherItem,
+  type OtherItemMarkdownData,
+} from './mappers/Items/Other/otherItemHelpers'
+export { mapGear, mapAdventuringGear } from './mappers/Items/Gear/gearMapper'
+export { buildGearMarkdown } from './mappers/Items/Gear/gearMarkdownBuilder'
+export {
+  cleanGearTags,
+  gearCostCopper,
+  gearEntriesText,
+  gearExportHash,
+  gearTags,
+  gearTypeName,
+  gearWeight,
+  isConsumableGear,
+  sourceForGear,
+  type GearMarkdownData,
+} from './mappers/Items/Gear/gearHelpers'
+export { mapWeapon } from './mappers/Items/Weapons/weaponMapper'
+export { buildWeaponMarkdown } from './mappers/Items/Weapons/weaponMarkdownBuilder'
+export { mapArmorItem, mapArmor, mapArmorOrShield, mapShield } from './mappers/Items/Armor/armorMapper'
+export { buildArmorMarkdown } from './mappers/Items/Armor/armorMarkdownBuilder'
+export {
+  armorAc,
+  armorExportHash,
+  armorName,
+  armorTags,
+  armorTypeName,
+  armorWeight,
+  costCopper,
+  isShield,
+  sourceForArmor,
+  slug,
+  type ArmorMarkdownData,
+} from './mappers/Items/Armor/armorHelpers'
+export {
+  exportHash as exportWeaponHash,
+  sourceForWeapon,
+  weaponDamageType,
+  weaponGroups,
+  weaponMastery,
+  weaponProperties,
+  weaponRange,
+  weaponTypeName,
+  weaponTags,
+  type WeaponMarkdownData,
+} from './mappers/Items/Weapons/weaponHelpers'
 export { mapMonster, preprocessMonsterTags } from './mappers/Beastiary/monsterMapper'
 export { buildMonsterMarkdown, type MonsterMarkdownData } from './mappers/Beastiary/monsterMarkdownBuilder'
 export {
