@@ -12,6 +12,8 @@ import { booksOf, copperLabel, type ShelfKind } from '../../compendium'
 import { useCompendium } from '../../compendium/host'
 import { PLUGIN_TITLE } from '../../platform'
 import { useActiveCampaign, useCampaigns, useCatalogRows, useElementWidth, usePlatform, Empty } from '../../platform/host'
+import { IMPORT_CATEGORIES } from '../../importers'
+import { useFiveEToolsImport } from './context'
 import type { Campaign } from '../../platform'
 
 /**
@@ -79,6 +81,7 @@ export default function SettingsPage() {
         >
           <CampaignSections narrow={narrow} />
           <DdbSection narrow={narrow} />
+          <FiveEToolsSection narrow={narrow} />
           {/* The harvest log is private (MYDND-200): guarded in place, so the SRD
               edition, which has no harvesting, drops the section and its import. */}
           {null}
@@ -94,7 +97,7 @@ const SECTIONS: readonly { id: SectionId; label: string; sub: string }[] = [
   { id: 'campaign', label: 'Campaign', sub: 'Which one is open' },
   { id: 'rules', label: 'Rules', sub: 'What this campaign plays by' },
   { id: 'ddb', label: 'D&D Beyond', sub: 'Where imports land' },
-  ...([]),
+  { id: 'import', label: '5etools Import', sub: 'Import rules data' },
 ]
 
 /** Below this the section list goes and the sections stack (the narrow board). */
@@ -433,6 +436,81 @@ function DdbSection({ narrow }: { narrow: boolean }) {
           {PLUGIN_TITLE}.
         </span>
       </div>
+    </Section>
+  )
+}
+
+
+// --- 5e Tools Importer ------------------------------------------------------
+/**
+ * Imported entities will use the existing `Note folders` settings rather than
+ * adding a second set of importer destinations. The importer domain resolves
+ * each 5etools entity kind through the same per-kind override and rules-root
+ * logic used by the catalogs, so changing those settings changes where future
+ * imports are written.
+ */
+function FiveEToolsSection({ narrow }: { narrow: boolean }) {
+  const importer = useFiveEToolsImport()
+  const [path, setPath] = useState('')
+  const [category, setCategory] = useState<(typeof IMPORT_CATEGORIES)[number]['value']>('spells')
+  const isFile = path.trim().toLowerCase().endsWith('.json')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const runImport = async () => {
+    if (!importer || !path.trim()) return
+    setBusy(true)
+    setError(null)
+    try {
+      await importer(path.trim(), isFile ? category : undefined)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Section id="import" title="5etools Import" file="Note folders" narrow={narrow}>
+      <div className="bst-st-pointer">
+        <strong>Use the existing Note folders</strong>
+        <span className="bst-note">
+          Imported spells, monsters, items and other rules data will use the paths configured in Obsidian&rsquo;s Note
+          folders settings, including per-kind folder overrides.
+        </span>
+      </div>
+      {error && <Problem>{error}</Problem>}
+      <input
+        type="text"
+        value={path}
+        placeholder="Path to 5etools folder or JSON file"
+        aria-label="5etools data path"
+        className="bst-input"
+        onChange={event => setPath(event.target.value)}
+        spellCheck={false}
+      />
+      {isFile && (
+        <select
+          aria-label="5etools file category"
+          className="bst-input"
+          value={category}
+          onChange={event => setCategory(event.target.value as typeof category)}
+        >
+          {IMPORT_CATEGORIES.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )}
+      <button
+        type="button"
+        className="bst-plain bst-btn-primary bst-btn-sm"
+        disabled={!importer || !path.trim() || busy}
+        onClick={() => void runImport()}
+      >
+        Import 5etools Data
+      </button>
     </Section>
   )
 }
