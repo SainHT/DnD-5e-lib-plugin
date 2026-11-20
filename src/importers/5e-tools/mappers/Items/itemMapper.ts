@@ -11,7 +11,7 @@ import { mapWeapon } from './Weapons/weaponMapper'
 import { mapArmorOrShield } from './Armor/armorMapper'
 import { mapAdventuringGear } from './Gear/gearMapper'
 import { mapTool } from './Tools/toolMapper'
-import { mapOtherItem } from './otherItemMapper'
+import { mapOtherItem } from './Other/otherItemMapper'
 
 /** Supported mundane item-kind categories. */
 export type ItemKind =
@@ -36,8 +36,8 @@ const TOOL_TYPE_CODES: ReadonlySet<string> = new Set(['AT', 'GS', 'INS', 'T', 'T
 
 /** 5etools type codes that identify Adventuring Gear and related goods. */
 const GEAR_TYPE_CODES: ReadonlySet<string> = new Set([
-  'G', 'EXP', 'FD', 'FOOD', 'MNT', 'P', 'POT', 'RG', 'RD', 'SC', 'SCF', 'ST',
-  'TAH', 'WD', 'WAND', 'AMMO', 'POTION', 'RING', 'ROD', 'SCROLL', 'STAFF',
+  'G', 'EXP', 'FD', 'FOOD', 'P', 'POT', 'RG', 'RD', 'SC', 'SCF', 'ST',
+  'WD', 'WAND', 'AMMO', 'POTION', 'RING', 'ROD', 'SCROLL', 'STAFF',
 ])
 
 /** 5etools type codes that identify treasure records. */
