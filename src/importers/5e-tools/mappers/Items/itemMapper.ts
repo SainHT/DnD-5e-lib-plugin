@@ -9,7 +9,7 @@ import { mappedNote } from '../../markdown'
 import type { FiveEToolsRecord, MappedNote } from '../../types'
 import { mapWeapon } from './Weapons/weaponMapper'
 import { mapArmorOrShield } from './Armor/armorMapper'
-import { mapAdventuringGear } from './Gear/GearMapper'
+import { mapAdventuringGear } from './Gear/gearMapper'
 import { mapTool } from './Tools/toolMapper'
 import { mapOtherItem } from './otherItemMapper'
 
