@@ -1,5 +1,4 @@
 import type { NoteFoldersSettings } from '../../../platform'
-import { slugForNote } from '../markdown'
 import type { VaultAdapter } from '../fileHandler'
 import type { FiveEToolsRecord, MappedNote } from '../types'
 
@@ -133,4 +132,21 @@ function isCurrentRecord(record: unknown): boolean {
   if (!record || typeof record !== 'object') return false
   const reprintedAs = (record as Record<string, unknown>).reprintedAs
   return Array.isArray(reprintedAs) ? reprintedAs.length === 0 : !reprintedAs
+}
+
+/**
+ * Generates a URL and filename safe slug for a note.
+ *
+ * @param name Note title or record name.
+ * @returns Sluggified string safe for vault note filenames.
+ */
+export function slugForNote(name: string): string {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'unnamed'
+  )
 }
