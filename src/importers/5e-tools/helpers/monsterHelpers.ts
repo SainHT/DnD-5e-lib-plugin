@@ -4,9 +4,15 @@
  * Every function in this module is I/O-free. It provides the normalized values
  * consumed by the monster mapper and Markdown builder.
  */
-import { sha256 } from '../hash'
+import {
+  abilityName,
+  exportHash,
+  slug,
+  sourceForRecord,
+  titleCase,
+} from './mapperHelpers'
 
-const SRD_SOURCE = 'SRD 5.2.1'
+export { exportHash, titleCase, abilityName }
 
 const XP_BY_CR: Readonly<Record<string, number>> = {
   '0': 10,
@@ -146,11 +152,7 @@ export function alignmentName(value: unknown): string {
 }
 
 /** Resolves the source label for a monster record. */
-export function sourceForMonster(record: Record<string, unknown>): string {
-  return record.srd52 === true || record.basicRules2024 === true
-    ? SRD_SOURCE
-    : (typeof record.source === 'string' && record.source.trim() ? record.source : 'Unknown')
-}
+export const sourceForMonster = sourceForRecord
 
 /** Converts a 5etools type field to type and subtype text. */
 export function monsterType(value: unknown): { type: string; subtype: string } {
@@ -320,36 +322,7 @@ export function legendaryDescription(lairUses: unknown): string {
 }
 
 /** Slugifies source or edition text for a frontmatter tag. */
-export function slugTag(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-}
-
-/** Produces a short SHA-256 export fingerprint for generated content. */
-export function exportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
-}
-
-/** Formats a title-cased name while preserving hyphen and slash separation. */
-export function titleCase(value: string): string {
-  return value
-    .split(/\s+/)
-    .map(word => word ? `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}` : '')
-    .join(' ')
-}
-
-/** Formats a full ability name from a 5etools abbreviation. */
-export function abilityName(value: unknown): string {
-  const key = typeof value === 'string' ? value.trim().toLowerCase() : ''
-  const names: Readonly<Record<string, string>> = {
-    str: 'Strength',
-    dex: 'Dexterity',
-    con: 'Constitution',
-    int: 'Intelligence',
-    wis: 'Wisdom',
-    cha: 'Charisma',
-  }
-  return names[key] ?? titleCase(key)
-}
+export const slugTag = (value: string): string => slug(value, '-')
 
 /** Formats one spellcasting entry's header and spell lists. */
 function formatSpellcasting(entry: Record<string, unknown>): string {

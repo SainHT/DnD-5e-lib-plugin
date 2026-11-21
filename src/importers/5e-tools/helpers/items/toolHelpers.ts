@@ -4,9 +4,16 @@
  * This module has no Obsidian or vault dependencies so nested-entry parsing,
  * inline-tag cleanup, currency conversion, and tag generation remain deterministic.
  */
-import { sha256 } from '../../hash'
-
-const SRD_SOURCE = 'SRD 5.2.1'
+import {
+  cleanItemTags,
+  itemCostCopper,
+  itemExportHash,
+  itemSource,
+  itemTags,
+  itemTypeCode,
+  itemWeight,
+  stringValue,
+} from '../itemHelpers'
 
 /** Structured tool details extracted from nested 5etools entries. */
 export interface ToolDetails {
@@ -45,7 +52,7 @@ export interface ToolMarkdownData {
  * @returns A canonical tool, instrument, or gaming-set label.
  */
 export function toolTypeName(value: unknown): string {
-  const code = typeof value === 'string' ? value.split('|', 1)[0]?.trim().toUpperCase() ?? '' : ''
+  const code = itemTypeCode(value)
   if (code === 'AT') return "Artisan's Tools"
   if (code === 'GS') return 'Gaming Set'
   if (code === 'INS') return 'Musical Instrument'
@@ -60,8 +67,7 @@ export function toolTypeName(value: unknown): string {
  * @returns `SRD 5.2.1` for SRD/basic-rule records, otherwise its source label.
  */
 export function sourceForTool(record: Record<string, unknown>): string {
-  if (record.srd52 === true || record.basicRules2024 === true) return SRD_SOURCE
-  return stringValue(record.source) ?? 'Unknown'
+  return itemSource(record)
 }
 
 /**
@@ -71,32 +77,7 @@ export function sourceForTool(record: Record<string, unknown>): string {
  * @returns Cost in copper pieces or `null` when unavailable.
  */
 export function toolCostCopper(record: Record<string, unknown>): number | null {
-  const value = record.value
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    const unit = firstString(record.valueUnit, record.currency, record.costUnit)?.toLowerCase()
-    return unit === 'gp' || unit === 'gold' ? value * 100 : value
-  }
-  if (typeof value === 'string') {
-    const match = value.trim().match(/^([\d,.]+)\s*(gp|cp|sp)?$/i)
-    if (!match) return null
-    const amount = Number(match[1].replace(/,/g, ''))
-    if (!Number.isFinite(amount)) return null
-    const unit = (match[2] ?? 'cp').toLowerCase()
-    if (unit === 'gp') return amount * 100
-    if (unit === 'sp') return amount * 10
-    return amount
-  }
-  if (value && typeof value === 'object') {
-    const object = value as Record<string, unknown>
-    const amount = firstNumber(object.amount, object.value)
-    if (amount === null) return null
-    const unit = firstString(object.unit, object.currency)?.toLowerCase()
-    if (unit === 'gp' || unit === 'gold') return amount * 100
-    if (unit === 'sp' || unit === 'silver') return amount * 10
-    return amount
-  }
-  const gp = firstNumber(record.valueGp, record.gp)
-  return gp === null ? null : gp * 100
+  return itemCostCopper(record)
 }
 
 /**
@@ -106,7 +87,7 @@ export function toolCostCopper(record: Record<string, unknown>): number | null {
  * @returns Numeric weight or `null`.
  */
 export function toolWeight(record: Record<string, unknown>): number | null {
-  return firstNumber(record.weight)
+  return itemWeight(record)
 }
 
 /**
@@ -205,13 +186,7 @@ function flattenEntryText(value: unknown): string {
  * @returns Plain readable text.
  */
 export function cleanInlineTags(value: string): string {
-  return value
-    .replace(/\{@dc\s+([^}]+)\}/gi, 'DC $1')
-    .replace(/\{@(?:item|spell|condition|creature|skill|variantrule)\s+([^}|]+)(?:\|[^}|]*)*\|?([^}]*)\}/gi,
-      (_match, name: string, display: string) => display?.trim() || name.trim())
-    .replace(/\{@[^|\s}]+\s+([^}|]+)(?:\|[^}]*)?\}/gi, '$1')
-    .replace(/\s+/g, ' ')
-    .trim()
+  return cleanItemTags(value)
 }
 
 /**
@@ -222,16 +197,7 @@ export function cleanInlineTags(value: string): string {
  * @returns Ordered frontmatter tags.
  */
 export function toolTags(itemType: string, source: string): string[] {
-  const tagSlug = itemType === "Artisan's Tools"
-    ? 'artisans-tools'
-    : itemType === 'Gaming Set'
-      ? 'gaming-set'
-      : itemType === 'Musical Instrument'
-        ? 'musical-instrument'
-        : slug(itemType)
-  const tags = ['item', `item/${tagSlug}`]
-  if (source === SRD_SOURCE) tags.push('srd-5-2-1')
-  return tags
+  return itemTags(itemType, source)
 }
 
 /**
@@ -241,56 +207,5 @@ export function toolTags(itemType: string, source: string): string[] {
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
 export function toolExportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
-}
-
-/**
- * Converts a display label into a lowercase hyphenated slug.
- *
- * @param value Human-readable label.
- * @returns Lowercase URL-safe tag segment.
- */
-export function slug(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-/**
- * Reads a trimmed string field.
- *
- * @param value Unknown field value.
- * @returns Trimmed string or `null`.
- */
-function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
-}
-
-/**
- * Reads the first finite numeric candidate.
- *
- * @param candidates Candidate unknown values.
- * @returns First finite number or `null`.
- */
-function firstNumber(...candidates: unknown[]): number | null {
-  for (const candidate of candidates) {
-    if (typeof candidate === 'number' && Number.isFinite(candidate)) return candidate
-  }
-  return null
-}
-
-/**
- * Reads the first non-empty string candidate.
- *
- * @param candidates Candidate unknown values.
- * @returns First trimmed string or `null`.
- */
-function firstString(...candidates: unknown[]): string | null {
-  for (const candidate of candidates) {
-    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim()
-  }
-  return null
+  return itemExportHash(body)
 }

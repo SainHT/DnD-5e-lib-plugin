@@ -5,9 +5,7 @@
  * inline-tag cleanup, structured attunement parsing, spell/charge extraction,
  * table normalization, and stable export metadata.
  */
-import { sha256 } from '../../hash'
-
-const SRD_SOURCE = 'SRD 5.2.1'
+import { firstNumber, itemExportHash, itemSlug, itemSource, itemTypeCode, itemWeight, SRD_SOURCE, stringValue } from '../itemHelpers'
 
 /** A single 5etools table row normalized for Markdown rendering. */
 export interface MagicItemTableRow {
@@ -84,8 +82,7 @@ export interface MagicItemMarkdownData {
  * @returns `SRD 5.2.1` for SRD/basic-rule records, otherwise the source.
  */
 export function sourceForMagicItem(record: Record<string, unknown>): string {
-  if (record.srd52 === true || record.basicRules2024 === true) return SRD_SOURCE
-  return stringValue(record.source) ?? 'Unknown'
+  return itemSource(record)
 }
 
 /**
@@ -110,7 +107,7 @@ export function magicItemTypeName(record: Record<string, unknown>): string {
   }
   if (record.staff === true) return 'Staff'
   if (record.wondrous === true) return 'Wondrous Item'
-  const code = typeof record.type === 'string' ? record.type.split('|', 1)[0]?.trim().toUpperCase() ?? '' : ''
+  const code = itemTypeCode(record.type)
   if (code === 'M' || code === 'R') return 'Magic Weapon'
   if (code === 'LA' || code === 'MA' || code === 'HA' || code === 'S') return 'Magic Armor'
   if (record.armor === true) return 'Magic Armor'
@@ -168,7 +165,7 @@ export function magicItemAttunementTags(record: Record<string, unknown>, prose =
  * @returns Weight in pounds or `null`.
  */
 export function magicItemWeight(record: Record<string, unknown>): number | null {
-  return firstNumber(record.weight)
+  return itemWeight(record)
 }
 
 /**
@@ -475,7 +472,7 @@ export function magicItemVariants(record: Record<string, unknown>): string[] {
  * @returns Ordered tag list.
  */
 export function magicItemTags(data: MagicItemMarkdownData): string[] {
-  const tags = ['item', 'item/magic', `item/${slug(data.itemType)}`, `rarity/${slug(data.rarity)}`]
+  const tags = ['item', 'item/magic', `item/${itemSlug(data.itemType)}`, `rarity/${itemSlug(data.rarity)}`]
   if (data.requiresAttunement) tags.push('attunement')
   if (data.cursed) tags.push('cursed')
   if (data.source === SRD_SOURCE) tags.push('srd-5-2-1')
@@ -499,30 +496,7 @@ export function magicItemIsCursed(record: Record<string, unknown>): boolean {
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
 export function magicItemExportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
-}
-
-/**
- * Converts a display label into a lowercase URL-safe tag segment.
- *
- * @param value Human-readable label.
- * @returns Lowercase hyphenated slug.
- */
-export function slug(value: string): string {
-  return value.trim().toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-}
-
-/**
- * Reads a finite numeric candidate.
- *
- * @param candidates Candidate unknown values.
- * @returns The first finite number or `null`.
- */
-function firstNumber(...candidates: unknown[]): number | null {
-  for (const candidate of candidates) {
-    if (typeof candidate === 'number' && Number.isFinite(candidate)) return candidate
-  }
-  return null
+  return itemExportHash(body)
 }
 
 /**
@@ -538,16 +512,6 @@ function signedNumber(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null
   }
   return null
-}
-
-/**
- * Reads a trimmed string.
- *
- * @param value Unknown value.
- * @returns Trimmed string or `null`.
- */
-function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 /**

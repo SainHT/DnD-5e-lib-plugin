@@ -4,7 +4,16 @@
  * No helper in this module performs I/O. The returned structures are consumed
  * by the Markdown builder and are intentionally straightforward to test.
  */
-import { sha256 } from '../hash'
+import {
+  ABILITY_NAMES,
+  exportHash,
+  slug as genericSlug,
+  sourceForRecord,
+  SRD_SOURCE,
+  stringValue,
+} from './mapperHelpers'
+
+export { exportHash, sourceForRecord }
 
 /** A structured benefit rendered in a feat's body and `vault-feat` fence. */
 export interface FeatBenefit {
@@ -49,27 +58,6 @@ const FEAT_KINDS: Readonly<Record<string, string>> = {
   EB: 'epic_boon',
   DG: 'dark_gift',
   FS: 'fighting_style',
-}
-
-const SRD_SOURCE = 'SRD 5.2.1'
-
-const ABILITY_NAMES: Readonly<Record<string, string>> = {
-  str: 'Strength',
-  dex: 'Dexterity',
-  con: 'Constitution',
-  int: 'Intelligence',
-  wis: 'Wisdom',
-  cha: 'Charisma',
-}
-
-/**
- * Resolves the canonical source label for a 5etools record.
- *
- * @param record Raw feat record whose edition flags and source are inspected.
- * @returns SRD 5.2.1 for SRD-marked records, otherwise the source or Unknown.
- */
-export function sourceForRecord(record: Record<string, unknown>): string {
-  return record.srd52 === true || record.basicRules2024 === true ? SRD_SOURCE : stringValue(record.source) ?? 'Unknown'
 }
 
 /**
@@ -200,16 +188,6 @@ export function abilityIncreaseFromRecord(value: unknown): AbilityIncrease | nul
 }
 
 /**
- * Computes the export hash used to identify generated content.
- *
- * @param body Canonical generated body content.
- * @returns A short SHA-256 export fingerprint with its metadata prefix.
- */
-export function exportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
-}
-
-/**
  * Converts nested entry arrays to paragraphs or Markdown list items.
  *
  * @param entries Raw nested 5etools entries.
@@ -270,17 +248,7 @@ function prerequisiteValue(value: unknown, feature: boolean): string {
  * @returns Lowercase underscore-separated key.
  */
 function slug(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'benefit'
-}
-
-/**
- * Returns a non-empty trimmed string or null.
- *
- * @param value Unknown value from a JSON record.
- * @returns Trimmed string, or null for non-string/empty values.
- */
-function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
+  return genericSlug(value, '_') || 'benefit'
 }
 
 /**

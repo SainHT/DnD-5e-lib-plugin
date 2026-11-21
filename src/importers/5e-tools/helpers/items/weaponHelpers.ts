@@ -4,9 +4,15 @@
  * These helpers intentionally have no Obsidian or vault dependencies so
  * weapon mapping remains deterministic and directly unit-testable.
  */
-import { sha256 } from '../../hash'
+import {
+  itemExportHash,
+  itemSlug,
+  itemSource,
+  itemTypeCode,
+  SRD_SOURCE,
+} from '../itemHelpers'
 
-const SRD_SOURCE = 'SRD 5.2.1'
+export { stringValue } from '../itemHelpers'
 
 const DAMAGE_TYPES: Readonly<Record<string, string>> = {
   A: 'Acid',
@@ -83,9 +89,7 @@ export interface WeaponMarkdownData {
  * @returns `SRD 5.2.1` for SRD/basic-rule records, otherwise the source name.
  */
 export function sourceForWeapon(record: Record<string, unknown>): string {
-  return record.srd52 === true || record.basicRules2024 === true
-    ? SRD_SOURCE
-    : stringValue(record.source) ?? 'Unknown'
+  return itemSource(record)
 }
 
 /**
@@ -95,7 +99,7 @@ export function sourceForWeapon(record: Record<string, unknown>): string {
  * @returns `Melee Weapon`, `Ranged Weapon`, or `Weapon`.
  */
 export function weaponTypeName(value: unknown): string {
-  const code = typeof value === 'string' ? value.split('|', 1)[0]?.trim().toUpperCase() : ''
+  const code = itemTypeCode(value)
   if (code === 'M') return 'Melee Weapon'
   if (code === 'R') return 'Ranged Weapon'
   return 'Weapon'
@@ -183,13 +187,10 @@ export function weaponGroups(record: Record<string, unknown>): string[] {
  * @returns Ordered tag list.
  */
 export function weaponTags(data: WeaponMarkdownData): string[] {
-  const tags = [
-    'item',
-    `item/${data.itemType.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-  ]
-  if (data.weaponCategory) tags.push(`weapon/${data.weaponCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`)
+  const tags = ['item', `item/${itemSlug(data.itemType)}`]
+  if (data.weaponCategory) tags.push(`weapon/${itemSlug(data.weaponCategory)}`)
   if (data.source === SRD_SOURCE) tags.push('srd-5-2-1')
-  for (const group of data.groups) tags.push(`group/${slug(group)}`)
+  for (const group of data.groups) tags.push(`group/${itemSlug(group)}`)
   return tags
 }
 
@@ -204,23 +205,13 @@ export function weaponNumber(value: unknown): number | null {
 }
 
 /**
- * Reads a string record field and trims surrounding whitespace.
- *
- * @param value Unknown field value.
- * @returns Trimmed string or `null`.
- */
-export function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
-}
-
-/**
  * Computes the stable export fingerprint for a weapon body.
  *
  * @param body Complete Markdown body excluding frontmatter.
  * @returns A SHA-256 fingerprint prefixed with `sha256-`.
  */
 export function exportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
+  return itemExportHash(body)
 }
 
 /**
@@ -230,7 +221,7 @@ export function exportHash(body: string): string {
  * @returns Lowercase hyphenated slug.
  */
 export function slug(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  return itemSlug(value)
 }
 
 /**

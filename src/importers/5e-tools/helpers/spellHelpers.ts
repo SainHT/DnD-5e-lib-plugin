@@ -1,9 +1,13 @@
 /**
  * Pure parsing and normalization helpers for 5etools spell records.
  */
-import { sha256 } from '../hash'
+import {
+  exportHash,
+  sourceForRecord,
+  stringValue,
+} from './mapperHelpers'
 
-const SRD_SOURCE = 'SRD 5.2.1'
+export { exportHash, sourceForRecord }
 
 const SCHOOLS: Readonly<Record<string, string>> = {
   A: 'Abjuration',
@@ -14,16 +18,6 @@ const SCHOOLS: Readonly<Record<string, string>> = {
   I: 'Illusion',
   N: 'Necromancy',
   T: 'Transmutation',
-}
-
-/**
- * Resolves the canonical source label for a spell.
- *
- * @param record Raw spell record.
- * @returns SRD 5.2.1 for SRD-marked records, otherwise the source or Unknown.
- */
-export function sourceForRecord(record: Record<string, unknown>): string {
-  return record.srd52 === true || record.basicRules2024 === true ? SRD_SOURCE : stringValue(record.source) ?? 'Unknown'
 }
 
 /**
@@ -252,16 +246,6 @@ export function preprocessTags(value: string): string {
 }
 
 /**
- * Computes the short export fingerprint used in generated frontmatter.
- *
- * @param body Canonical generated body.
- * @returns SHA-256 metadata value.
- */
-export function exportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
-}
-
-/**
  * Flattens entry strings and named entry groups.
  *
  * @param value Raw entries value.
@@ -277,16 +261,6 @@ function flattenEntries(value: unknown): { text: string; name?: string }[] {
     if (node.type === 'list' && Array.isArray(node.items)) return [{ text: node.items.map(item => `- ${flattenEntries([item]).map(value => value.text).join('\n')}`).join('\n') }]
     return []
   })
-}
-
-/**
- * Returns a trimmed string or null.
- *
- * @param value Unknown raw value.
- * @returns A trimmed string, or null.
- */
-function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 /**
