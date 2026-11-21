@@ -109,11 +109,11 @@ describe('magic item mapper', () => {
     expect(markdown).toContain('attunement_restriction:')
     expect(markdown).toContain('charges: 20')
     expect(markdown).toContain('recharge: dawn')
-    expect(markdown).toContain('recharge_amount: 2d8 + 4')
-    expect(markdown).toContain('bonus_ac: +2')
-    expect(markdown).toContain('bonus_weapon: +2')
-    expect(markdown).toContain('bonus_saving_throw: +2')
-    expect(markdown).toContain('bonus_spell_attack: +2')
+    expect(markdown).toContain('recharge_amount: "2d8 + 4"')
+    expect(markdown).toContain('bonus_ac: "+2"')
+    expect(markdown).toContain('bonus_weapon: "+2"')
+    expect(markdown).toContain('bonus_saving_throw: "+2"')
+    expect(markdown).toContain('bonus_spell_attack: "+2"')
     expect(markdown).toContain('| Spell | Charge Cost |')
     expect(markdown).toContain('| Magic Missile | 1 |')
     expect(markdown).toContain('| Cone Of Cold | 5 |')
@@ -150,5 +150,57 @@ describe('magic item mapper', () => {
   it('cleans inline tags and accepts direct builder use', () => {
     expect(cleanMagicItemInlineTags('{@variantrule Armor Class|XPHB}')).toBe('Armor Class')
     expect(cleanMagicItemInlineTags('{@dice 2d8 + 4}')).toBe('2d8 + 4')
+  })
+
+  it('recursively renders Blood Fury Tattoo named entries and nested lists', () => {
+    const tattoo = {
+      name: 'Blood Fury Tattoo',
+      source: 'XDMG',
+      rarity: 'legendary',
+      wondrous: true,
+      entries: [{
+        type: 'entries',
+        name: 'Bloodthirsty Strikes',
+        entries: [
+          'Once on each of your turns, you can deal extra damage.',
+          {
+            type: 'list',
+            items: [
+              'The attack deals {@damage 4d6} extra damage.',
+              'The tattoo sheds bright light.',
+            ],
+          },
+        ],
+      }],
+    }
+
+    const markdown = mapMagicItemRecord(tattoo).markdown
+
+    expect(markdown).toContain('**Bloodthirsty Strikes.**')
+    expect(markdown).toContain('Once on each of your turns, you can deal extra damage.')
+    expect(markdown).toContain('- The attack deals 4d6 extra damage.')
+    expect(markdown).toContain('- The tattoo sheds bright light.')
+  })
+
+  it('maps Blasted Goggles curse true with charges and recharge metadata', () => {
+    const goggles = {
+      name: 'Blasted Goggles',
+      source: 'XDMG',
+      rarity: 'rare',
+      curse: true,
+      wondrous: true,
+      charges: 3,
+      recharge: 'dawn',
+      rechargeAmount: '{@dice 1d3}',
+      entries: ['A curse consumes the wearers sight.'],
+    }
+
+    const markdown = mapMagicItemRecord(goggles).markdown
+
+    expect(markdown).toContain('cursed: true')
+    expect(markdown).toContain('  - cursed')
+    expect(markdown).toContain('charges: 3')
+    expect(markdown).toContain('recharge: dawn')
+    expect(markdown).toContain('recharge_amount: 1d3')
   })
 })

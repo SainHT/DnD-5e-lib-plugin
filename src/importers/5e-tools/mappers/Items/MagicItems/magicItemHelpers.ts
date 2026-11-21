@@ -281,22 +281,58 @@ function renderEntryValue(value: unknown, depth: number): string {
   }
   if (!value || typeof value !== 'object') return ''
   const entry = value as Record<string, unknown>
+  const entryType = typeof entry.type === 'string' ? entry.type.trim().toLowerCase() : ''
+  if (entryType === 'list' && Array.isArray(entry.items)) {
+    return renderListItems(entry.items, depth)
+  }
   if (Array.isArray(entry.rows) && Array.isArray(entry.colLabels)) {
     return magicItemTableMarkdown(normalizeMagicItemTable(entry))
   }
   const name = stringValue(entry.name)
   if (name) {
-    const level = depth === 0 ? '###' : '####'
     const nested = typeof entry.entries !== 'undefined'
       ? renderEntryValue(entry.entries, depth + 1)
       : typeof entry.entry === 'string'
         ? cleanInlineTags(entry.entry)
         : ''
-    return nested ? `${level} ${cleanInlineTags(name)}\n\n${nested}` : `${level} ${cleanInlineTags(name)}`
+    const cleanName = cleanInlineTags(name).replace(/[.:]$/, '').trim()
+    if (!nested) return `**${cleanName}.**`
+    if (nested.startsWith('- ') || nested.startsWith('| ') || nested.startsWith('**')) {
+      return `**${cleanName}.**\n\n${nested}`
+    }
+    return `**${cleanName}.** ${nested}`
   }
   if (typeof entry.entry === 'string') return cleanInlineTags(entry.entry)
   if (typeof entry.entries !== 'undefined') return renderEntryValue(entry.entries, depth)
   return ''
+}
+
+/**
+ * Renders all items in a 5etools list object at arbitrary nesting depth.
+ *
+ * @param items Raw list-item collection.
+ * @param depth Current recursive entry depth.
+ * @returns Markdown bullet list text.
+ */
+function renderListItems(items: unknown[], depth: number): string {
+  return items.flatMap(item => {
+    if (typeof item === 'string') {
+      const text = cleanInlineTags(item).trim()
+      return text ? [`- ${text}`] : []
+    }
+    if (!item || typeof item !== 'object') return []
+    const object = item as Record<string, unknown>
+    if (typeof object.entry === 'string') {
+      const text = cleanInlineTags(object.entry).trim()
+      if (!text) return []
+      const nested = Array.isArray(object.entries)
+        ? renderEntryValue(object.entries, depth + 1)
+        : ''
+      return [`- ${text}${nested ? `\n\n${nested}` : ''}`]
+    }
+    const rendered = renderEntryValue(object, depth + 1).trim()
+    return rendered ? [`- ${rendered}`] : []
+  }).join('\n')
 }
 
 /**
@@ -453,7 +489,7 @@ export function magicItemTags(data: MagicItemMarkdownData): string[] {
  * @returns True for an explicit cursed flag.
  */
 export function magicItemIsCursed(record: Record<string, unknown>): boolean {
-  return record.cursed === true
+  return record.curse === true || record.cursed === true
 }
 
 /**
