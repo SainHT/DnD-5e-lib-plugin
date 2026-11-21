@@ -1,7 +1,8 @@
 /**
  * Builds the exact frontmatter and statblock fence used by monster import notes.
  */
-import { exportHash, type MonsterEntry } from './monsterHelpers'
+import { yamlStrict as yaml, buildFrontmatter } from './baseMarkdownBuilder'
+import { exportHash, type MonsterEntry } from '../mappers/Beastiary/monsterHelpers'
 
 /** Normalized fields consumed while assembling a monster Markdown note. */
 export interface MonsterMarkdownData {
@@ -48,30 +49,28 @@ export interface MonsterMarkdownData {
 export function buildMonsterMarkdown(data: MonsterMarkdownData): string {
   const body = buildStatblock(data)
   const crLine = /^\d+$/.test(data.cr) ? data.cr : yaml(data.cr)
-  const frontmatter = [
-    '---',
-    `title: ${yaml(data.name)}`,
-    `source: ${yaml(data.source)}`,
-    `edition: ${yaml(data.source)}`,
-    'statblock: inline',
-    `cr: ${crLine}`,
-    `xp: ${data.xp}`,
-    ...(typeof data.xpLair === 'number' ? [`xp_lair: ${data.xpLair}`] : []),
-    ...(data.type ? [`type: ${yaml(data.type)}`] : []),
-    ...(data.subtype ? [`subtype: ${yaml(data.subtype)}`] : []),
-    ...(data.size ? [`size: ${yaml(data.size)}`] : []),
-    ...(typeof data.ac === 'number' ? [`ac: ${data.ac}`] : []),
-    ...(typeof data.hp === 'number' ? [`hp: ${data.hp}`] : []),
-    ...(typeof data.speed === 'number' ? [`speed: ${data.speed}`] : []),
-    `legendary: ${data.legendary}`,
-    `spellcasting: ${data.spellcasting}`,
-    'tags:',
-    ...data.tags.map(tag => `  - ${tag}`),
-    'aliases:',
-    `  - ${yaml(data.name)}`,
-    `export_hash: ${exportHash(body)}`,
-    '---',
-  ]
+  const frontmatter = buildFrontmatter({
+    title: data.name,
+    source: data.source,
+    strictYaml: true,
+    extra: [
+      'statblock: inline',
+      `cr: ${crLine}`,
+      `xp: ${data.xp}`,
+      ...(typeof data.xpLair === 'number' ? [`xp_lair: ${data.xpLair}`] : []),
+      ...(data.type ? [`type: ${yaml(data.type)}`] : []),
+      ...(data.subtype ? [`subtype: ${yaml(data.subtype)}`] : []),
+      ...(data.size ? [`size: ${yaml(data.size)}`] : []),
+      ...(typeof data.ac === 'number' ? [`ac: ${data.ac}`] : []),
+      ...(typeof data.hp === 'number' ? [`hp: ${data.hp}`] : []),
+      ...(typeof data.speed === 'number' ? [`speed: ${data.speed}`] : []),
+      `legendary: ${data.legendary}`,
+      `spellcasting: ${data.spellcasting}`,
+    ],
+    tags: data.tags,
+    aliases: [data.name],
+    exportHash: exportHash(body),
+  })
   return `${frontmatter.join('\n')}\n\n${body}\n`
 }
 
@@ -143,14 +142,4 @@ function appendEntries(lines: string[], key: string, entries: MonsterEntry[]): v
     lines.push(`  - name: ${yaml(entry.name)}`)
     lines.push(`    desc: ${yaml(entry.desc)}`)
   }
-}
-
-/**
- * Serializes a Markdown string for use as a YAML scalar.
- *
- * @param value String to serialize.
- * @returns JSON-compatible quoted scalar.
- */
-function yaml(value: string): string {
-  return JSON.stringify(value)
 }

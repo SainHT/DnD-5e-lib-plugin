@@ -4,8 +4,9 @@
  * Frontmatter stays flat for Obsidian properties, while detailed benefits are
  * emitted in the `vault-feat` YAML fence consumed by the feat catalog.
  */
-import type { FeatBenefit, FeatMarkdownData } from './featHelpers'
-import { exportHash, featTags } from './featHelpers'
+import { yamlStrict as yamlString, buildFrontmatter, buildHeading } from './baseMarkdownBuilder'
+import type { FeatBenefit, FeatMarkdownData } from '../mappers/Feats/featHelpers'
+import { exportHash, featTags } from '../mappers/Feats/featHelpers'
 
 /**
  * Assembles frontmatter, prose body, and the structured benefits fence.
@@ -16,21 +17,21 @@ import { exportHash, featTags } from './featHelpers'
 export function buildFeatMarkdown(data: FeatMarkdownData): string {
   const body = buildBody(data)
   return [
-    '---',
-    `title: ${yamlString(data.name)}`,
-    `source: ${yamlString(data.source)}`,
-    `edition: ${yamlString(data.source)}`,
-    `kind: ${yamlString(data.kind)}`,
-    ...(data.prerequisite ? [`prerequisite: ${yamlString(data.prerequisite)}`] : []),
-    ...(data.abilityIncrease ? ['abilities:', ...data.abilityIncrease.options.map(option => `  - ${option}`)] : []),
-    `benefit_count: ${Math.max(1, data.benefits.filter(benefit => benefit.key !== 'overview').length)}`,
-    `modelled_count: ${data.abilityIncrease ? 1 : 0}`,
-    'tags:',
-    ...featTags(data.kind, data.source).map(tag => `  - ${tag}`),
-    'aliases:',
-    `  - ${yamlString(data.name)}`,
-    `export_hash: ${exportHash(body)}`,
-    '---',
+    ...buildFrontmatter({
+      title: data.name,
+      source: data.source,
+      strictYaml: true,
+      extra: [
+        `kind: ${yamlString(data.kind)}`,
+        ...(data.prerequisite ? [`prerequisite: ${yamlString(data.prerequisite)}`] : []),
+        ...(data.abilityIncrease ? ['abilities:', ...data.abilityIncrease.options.map(option => `  - ${option}`)] : []),
+        `benefit_count: ${Math.max(1, data.benefits.filter(benefit => benefit.key !== 'overview').length)}`,
+        `modelled_count: ${data.abilityIncrease ? 1 : 0}`,
+      ],
+      tags: featTags(data.kind, data.source),
+      aliases: [data.name],
+      exportHash: exportHash(body),
+    }),
     '',
     body,
     '',
@@ -45,9 +46,7 @@ export function buildFeatMarkdown(data: FeatMarkdownData): string {
  */
 function buildBody(data: FeatMarkdownData): string {
   return [
-    `# ${data.name}`,
-    '',
-    `*${data.kind}${data.prerequisite ? ` · ${data.prerequisite}` : ''} | Source: ${data.source}*`,
+    buildHeading(data.name, `${data.kind}${data.prerequisite ? ` · ${data.prerequisite}` : ''}`, data.source),
     '',
     data.benefits.map(renderBenefitBody).join('\n\n'),
     '',
@@ -99,14 +98,3 @@ function renderEffectYaml(effect: Record<string, unknown>, indent: number): stri
       .map(([key, value]) => `${padding}  ${key}: ${Array.isArray(value) ? `[${value.join(', ')}]` : String(value)}`),
   ]
 }
-
-/**
- * Serializes a string as a YAML-safe JSON-style scalar.
- *
- * @param value String to serialize.
- * @returns Quoted scalar text.
- */
-function yamlString(value: string): string {
-  return JSON.stringify(value)
-}
-

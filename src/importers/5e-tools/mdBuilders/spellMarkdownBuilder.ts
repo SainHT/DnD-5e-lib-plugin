@@ -1,7 +1,8 @@
 /**
  * Builds the YAML frontmatter and readable body for an imported spell.
  */
-import { exportHash } from './spellHelpers'
+import { yamlStrict as yaml, buildFrontmatter, buildHeading } from './baseMarkdownBuilder'
+import { exportHash } from '../mappers/Spells/spellHelpers'
 
 /**
  * Normalized values consumed by the spell Markdown builder.
@@ -57,28 +58,28 @@ export function buildSpellMarkdown(data: SpellMarkdownData): string {
     ...(data.ritual ? ['ritual'] : []),
   ]
   return [
-    '---',
-    `title: ${yaml(data.name)}`,
-    `source: ${yaml(data.source)}`,
-    `edition: ${yaml(data.source)}`,
-    `level: ${data.level}`,
-    `school: ${yaml(data.school)}`,
-    `casting_time: ${yaml(data.castingTime)}`,
-    `range: ${yaml(data.range)}`,
-    `components: ${yaml(data.components)}`,
-    `duration: ${yaml(data.duration)}`,
-    `concentration: ${data.concentration}`,
-    `ritual: ${data.ritual}`,
-    ...(data.damageTypes.length ? ['damage_types:', ...data.damageTypes.map(type => `- ${type}`)] : []),
-    ...(data.damageDice ? [`damage_dice: ${yaml(data.damageDice)}`] : []),
-    ...(data.cantripDice.length ? ['cantrip_dice:', ...data.cantripDice.map(dice => `  - ${yaml(dice)}`)] : []),
-    ...(data.classes.length ? ['classes:', ...data.classes.map(value => `- ${yaml(value)}`)] : []),
-    'tags:',
-    ...tags.map(tag => `- ${tag}`),
-    'aliases:',
-    `- ${yaml(data.alias)}`,
-    `export_hash: ${exportHash(body)}`,
-    '---',
+    ...buildFrontmatter({
+      title: data.name,
+      source: data.source,
+      strictYaml: true,
+      extra: [
+        `level: ${data.level}`,
+        `school: ${yaml(data.school)}`,
+        `casting_time: ${yaml(data.castingTime)}`,
+        `range: ${yaml(data.range)}`,
+        `components: ${yaml(data.components)}`,
+        `duration: ${yaml(data.duration)}`,
+        `concentration: ${data.concentration}`,
+        `ritual: ${data.ritual}`,
+        ...(data.damageTypes.length ? ['damage_types:', ...data.damageTypes.map(type => `  - ${type}`)] : []),
+        ...(data.damageDice ? [`damage_dice: ${yaml(data.damageDice)}`] : []),
+        ...(data.cantripDice.length ? ['cantrip_dice:', ...data.cantripDice.map(dice => `  - ${yaml(dice)}`)] : []),
+        ...(data.classes.length ? ['classes:', ...data.classes.map(value => `  - ${yaml(value)}`)] : []),
+      ],
+      tags,
+      aliases: [data.alias],
+      exportHash: exportHash(body),
+    }),
     body,
     '',
   ].join('\n')
@@ -93,8 +94,7 @@ export function buildSpellMarkdown(data: SpellMarkdownData): string {
 function buildBody(data: SpellMarkdownData): string {
   const classes = data.classes.length ? ` (${data.classes.join(', ')})` : ''
   return [
-    `# ${data.name}`,
-    `*Level ${data.level} ${data.school}${classes} | Source: ${data.source}*`,
+    buildHeading(data.name, `Level ${data.level} ${data.school}${classes}`, data.source),
     ``,
     `- **Casting Time:** ${data.castingTime}`,
     `- **Range:** ${data.range}`,
@@ -104,14 +104,4 @@ function buildBody(data: SpellMarkdownData): string {
     ...(data.classes.length ? [`- Classes: ${data.classes.join(', ')}`] : []),
     data.body,
   ].join('\n')
-}
-
-/**
- * Serializes a string as a YAML-safe quoted scalar.
- *
- * @param value String to serialize.
- * @returns JSON-compatible quoted scalar.
- */
-function yaml(value: string): string {
-  return JSON.stringify(value)
 }
