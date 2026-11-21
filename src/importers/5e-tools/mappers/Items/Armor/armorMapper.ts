@@ -5,7 +5,7 @@
  * (`LA`, `MA`, `HA`) and delegates rendering to the shared armor builder.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildArmorMarkdown } from './armorMarkdownBuilder'
+import { buildArmorMarkdown } from '../../../mdBuilders/items/armorMarkdownBuilder'
 import {
   armorAc,
   armorName,

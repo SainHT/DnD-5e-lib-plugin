@@ -5,7 +5,7 @@
  * `weaponMarkdownBuilder`, keeping this mapper useful for both imports and tests.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildWeaponMarkdown } from './weaponMarkdownBuilder'
+import { buildWeaponMarkdown } from '../../../mdBuilders/items/weaponMarkdownBuilder'
 import {
   sourceForWeapon,
   stringValue,

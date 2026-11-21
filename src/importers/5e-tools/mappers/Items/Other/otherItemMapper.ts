@@ -2,7 +2,7 @@
  * Coordinates transformation of fallback, miscellaneous, and mount-like items.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildOtherItemMarkdown } from './otherItemMarkdownBuilder'
+import { buildOtherItemMarkdown } from '../../../mdBuilders/items/otherItemMarkdownBuilder'
 import {
   otherItemCostCopper,
   otherItemCarryingCapacity,

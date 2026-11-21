@@ -5,7 +5,7 @@
  * in `spellMarkdownBuilder`, making this coordinator useful in isolation.
  */
 import type { MappedNote, FiveEToolsRecord } from '../../types'
-import { buildSpellMarkdown, type SpellMarkdownData } from './spellMarkdownBuilder'
+import { buildSpellMarkdown, type SpellMarkdownData } from '../../mdBuilders/spellMarkdownBuilder'
 import {
   classesFromRecord,
   cantripDiceFromRecord,

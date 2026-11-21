@@ -64,7 +64,7 @@ export {
 } from './mappers/Items/itemMapper'
 export { mapOtherItem } from './mappers/Items/Other/otherItemMapper'
 export { mapMagicItem as mapMagicItemRecord } from './mappers/Items/MagicItems/magicItemMapper'
-export { buildMagicItemMarkdown } from './mappers/Items/MagicItems/magicItemMarkdownBuilder'
+export { buildMagicItemMarkdown } from './mdBuilders/items/magicItemMarkdownBuilder'
 export {
   cleanInlineTags as cleanMagicItemInlineTags,
   magicItemAttunement,
@@ -90,7 +90,7 @@ export {
   type MagicItemTable,
   type MagicItemTableRow,
 } from './mappers/Items/MagicItems/magicItemHelpers'
-export { buildOtherItemMarkdown } from './mappers/Items/Other/otherItemMarkdownBuilder'
+export { buildOtherItemMarkdown } from './mdBuilders/items/otherItemMarkdownBuilder'
 export {
   cleanOtherItemTags,
   otherItemCarryingCapacity,
@@ -106,7 +106,7 @@ export {
   type OtherItemMarkdownData,
 } from './mappers/Items/Other/otherItemHelpers'
 export { mapGear, mapAdventuringGear } from './mappers/Items/Gear/gearMapper'
-export { buildGearMarkdown } from './mappers/Items/Gear/gearMarkdownBuilder'
+export { buildGearMarkdown } from './mdBuilders/items/gearMarkdownBuilder'
 export {
   cleanGearTags,
   gearCostCopper,
@@ -120,9 +120,9 @@ export {
   type GearMarkdownData,
 } from './mappers/Items/Gear/gearHelpers'
 export { mapWeapon } from './mappers/Items/Weapons/weaponMapper'
-export { buildWeaponMarkdown } from './mappers/Items/Weapons/weaponMarkdownBuilder'
+export { buildWeaponMarkdown } from './mdBuilders/items/weaponMarkdownBuilder'
 export { mapArmorItem, mapArmor, mapArmorOrShield, mapShield } from './mappers/Items/Armor/armorMapper'
-export { buildArmorMarkdown } from './mappers/Items/Armor/armorMarkdownBuilder'
+export { buildArmorMarkdown } from './mdBuilders/items/armorMarkdownBuilder'
 export {
   armorAc,
   armorExportHash,
@@ -149,7 +149,7 @@ export {
   type WeaponMarkdownData,
 } from './mappers/Items/Weapons/weaponHelpers'
 export { mapMonster, preprocessMonsterTags } from './mappers/Beastiary/monsterMapper'
-export { buildMonsterMarkdown, type MonsterMarkdownData } from './mappers/Beastiary/monsterMarkdownBuilder'
+export { buildMonsterMarkdown, type MonsterMarkdownData } from './mdBuilders/monsterMarkdownBuilder'
 export {
   alignmentName,
   armorClass,
@@ -173,7 +173,7 @@ export {
   type MonsterEntry,
 } from './mappers/Beastiary/monsterHelpers'
 export { mapSpell, preprocessSpellTags } from './mappers/Spells/spellMapper'
-export { buildSpellMarkdown, type SpellMarkdownData } from './mappers/Spells/spellMarkdownBuilder'
+export { buildSpellMarkdown, type SpellMarkdownData } from './mdBuilders/spellMarkdownBuilder'
 export {
   castingTimeText,
   cantripDiceFromRecord,

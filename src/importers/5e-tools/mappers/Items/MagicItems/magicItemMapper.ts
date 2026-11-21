@@ -5,7 +5,7 @@
  * the magic-item Markdown builder.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildMagicItemMarkdown } from './magicItemMarkdownBuilder'
+import { buildMagicItemMarkdown } from '../../../mdBuilders/items/magicItemMarkdownBuilder'
 import {
   magicItemAttunement,
   magicItemEntriesMarkdown,

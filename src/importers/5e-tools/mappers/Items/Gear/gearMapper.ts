@@ -5,7 +5,7 @@
  * `gearMarkdownBuilder`, keeping this mapper reusable and testable.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildGearMarkdown } from './gearMarkdownBuilder'
+import { buildGearMarkdown } from '../../../mdBuilders/items/gearMarkdownBuilder'
 import {
   gearCostCopper,
   gearEntriesText,

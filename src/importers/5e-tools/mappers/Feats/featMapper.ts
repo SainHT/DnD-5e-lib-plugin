@@ -7,7 +7,7 @@
  * and tests.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../types'
-import { buildFeatMarkdown } from './featMarkdownBuilder'
+import { buildFeatMarkdown } from '../../mdBuilders/featMarkdownBuilder'
 import {
   abilityIncreaseFromRecord,
   benefitsFromEntries,

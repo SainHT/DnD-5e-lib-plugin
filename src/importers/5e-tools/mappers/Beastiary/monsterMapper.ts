@@ -2,7 +2,7 @@
  * Coordinates conversion of a raw 5etools monster record into a mapped note.
  */
 import type { FiveEToolsRecord, MappedNote } from '../../types'
-import { buildMonsterMarkdown, type MonsterMarkdownData } from './monsterMarkdownBuilder'
+import { buildMonsterMarkdown, type MonsterMarkdownData } from '../../mdBuilders/monsterMarkdownBuilder'
 import {
   alignmentName,
   armorClass,
