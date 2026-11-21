@@ -1,0 +1,154 @@
+import { describe, expect, it } from 'vitest'
+import {
+  cleanMagicItemInlineTags,
+  importItems,
+  mapItem,
+  mapMagicItemRecord,
+  type ItemVault,
+} from '../../../../src/importers/5e-tools'
+import { DEFAULT_NOTE_FOLDERS } from '../../../../src/platform'
+
+const bagOfHolding = {
+  name: 'Bag of Holding',
+  source: 'XDMG',
+  srd52: true,
+  basicRules2024: true,
+  rarity: 'uncommon',
+  wondrous: true,
+  weight: 15,
+  entries: ['This bag has an extradimensional space.'],
+}
+
+const staffOfPower = {
+  name: 'Staff of Power',
+  source: 'XDMG',
+  srd52: true,
+  basicRules2024: true,
+  type: 'M|XPHB',
+  rarity: 'very rare',
+  reqAttune: 'by a sorcerer, warlock, or wizard',
+  reqAttuneTags: [
+    { class: 'sorcerer' },
+    { class: 'warlock' },
+    { class: 'wizard' },
+  ],
+  weight: 4,
+  weaponCategory: 'simple',
+  dmg1: '1d6',
+  dmgType: 'B',
+  dmg2: '1d8',
+  bonusWeapon: '+2',
+  bonusSpellAttack: '+2',
+  bonusAc: '+2',
+  bonusSavingThrow: '+2',
+  recharge: 'dawn',
+  rechargeAmount: '{@dice 2d8 + 4}',
+  charges: 20,
+  staff: true,
+  entries: [
+    'This staff has 20 charges and grants a +2 bonus to {@variantrule Armor Class|XPHB}.',
+    {
+      type: 'entries',
+      name: 'Spells',
+      entries: ['Cast {@spell Fireball|XPHB} using {@dc 17} or spend {@chance 50} chance.'],
+    },
+  ],
+  attachedSpells: {
+    charges: {
+      1: ['magic missile|xphb', 'ray of enfeeblement|xphb'],
+      5: ['fireball|xphb', 'cone of cold|xphb'],
+    },
+  },
+}
+
+const beltOfGiantStrength = {
+  name: 'Belt of Giant Strength',
+  source: 'XDMG',
+  srd52: true,
+  basicRules2024: true,
+  rarity: 'varies',
+  reqAttune: true,
+  wondrous: true,
+  entries: [{
+    type: 'table',
+    colLabels: ['Belt', 'Str.', 'Rarity'],
+    colStyles: ['col-8', 'col-2 text-center', 'col-2'],
+    rows: [
+      ['{@item Belt of Hill Giant Strength|XDMG}', '21', 'Rare'],
+      ['{@item Belt of Frost Giant Strength|XDMG}', '23', 'Very Rare'],
+    ],
+  }],
+  items: [
+    'Belt of Cloud Giant Strength|XDMG',
+    'Belt of Fire Giant Strength|XDMG',
+  ],
+  itemsHidden: true,
+}
+
+describe('magic item mapper', () => {
+  it('maps standard magic items with frontmatter and vault-item metadata', () => {
+    const markdown = mapItem(bagOfHolding).markdown
+    expect(mapItem(bagOfHolding).kind).toBe('magicItem')
+    expect(markdown).toContain('title: Bag of Holding')
+    expect(markdown).toContain('source: SRD 5.2.1')
+    expect(markdown).toContain('item_type: Wondrous Item')
+    expect(markdown).toContain('rarity: uncommon')
+    expect(markdown).toContain('requires_attunement: false')
+    expect(markdown).toContain('wondrous: true')
+    expect(markdown).toContain('weight: 15')
+    expect(markdown).toContain('*Uncommon | Source: SRD 5.2.1*')
+    expect(markdown).toContain('This bag has an extradimensional space.')
+    expect(markdown).toContain('```vault-item\nweight: 15\n```')
+    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+  })
+
+  it('maps Staff of Power charges, restrictions, bonuses, spells, and inline tags', () => {
+    const markdown = mapMagicItemRecord(staffOfPower).markdown
+    expect(markdown).toContain('rarity: very rare')
+    expect(markdown).toContain('requires_attunement: true')
+    expect(markdown).toContain('attunement_restriction:')
+    expect(markdown).toContain('charges: 20')
+    expect(markdown).toContain('recharge: dawn')
+    expect(markdown).toContain('recharge_amount: 2d8 + 4')
+    expect(markdown).toContain('bonus_ac: +2')
+    expect(markdown).toContain('bonus_weapon: +2')
+    expect(markdown).toContain('bonus_saving_throw: +2')
+    expect(markdown).toContain('bonus_spell_attack: +2')
+    expect(markdown).toContain('| Spell | Charge Cost |')
+    expect(markdown).toContain('| Magic Missile | 1 |')
+    expect(markdown).toContain('| Cone Of Cold | 5 |')
+    expect(markdown).toContain('Armor Class')
+    expect(markdown).toContain('DC 17')
+    expect(markdown).toContain('50% chance')
+    expect(markdown).not.toContain('{@')
+  })
+
+  it('maps variable-rarity item groups and table variants', () => {
+    const markdown = mapMagicItemRecord(beltOfGiantStrength).markdown
+    expect(markdown).toContain('item_type: Item Group')
+    expect(markdown).toContain('rarity: varies')
+    expect(markdown).toContain('requires_attunement: true')
+    expect(markdown).toContain('| Belt | Str. | Rarity |')
+    expect(markdown).toContain('| Belt of Hill Giant Strength | 21 | Rare |')
+    expect(markdown).toContain('Belt of Cloud Giant Strength')
+  })
+
+  it('imports magic items into the configured magic-items folder', async () => {
+    const created: string[] = []
+    const vault: ItemVault = {
+      exists: async () => false,
+      list: async () => ({ files: [], folders: [] }),
+      read: async () => JSON.stringify({ item: [bagOfHolding] }),
+      create: async path => {
+        created.push(path)
+      },
+    }
+    await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 0 })
+    expect(created).toEqual(['SRD 5.2.1/magic-items/bag-of-holding.md'])
+  })
+
+  it('cleans inline tags and accepts direct builder use', () => {
+    expect(cleanMagicItemInlineTags('{@variantrule Armor Class|XPHB}')).toBe('Armor Class')
+    expect(cleanMagicItemInlineTags('{@dice 2d8 + 4}')).toBe('2d8 + 4')
+  })
+})
