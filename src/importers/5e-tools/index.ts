@@ -63,6 +63,33 @@ export {
   type ItemKind,
 } from './mappers/Items/itemMapper'
 export { mapOtherItem } from './mappers/Items/Other/otherItemMapper'
+export { mapMagicItem as mapMagicItemRecord } from './mappers/Items/MagicItems/magicItemMapper'
+export { buildMagicItemMarkdown } from './mappers/Items/MagicItems/magicItemMarkdownBuilder'
+export {
+  cleanInlineTags as cleanMagicItemInlineTags,
+  magicItemAttunement,
+  magicItemAttunementTags,
+  magicItemEntriesMarkdown,
+  magicItemExportHash,
+  magicItemIsCursed,
+  magicItemMetrics,
+  magicItemRarity,
+  magicItemSpellCharges,
+  magicItemSpellTable,
+  magicItemSummary,
+  magicItemTableMarkdown,
+  magicItemTables,
+  magicItemTags,
+  magicItemTypeName,
+  magicItemVariants,
+  magicItemWeight,
+  normalizeMagicItemTable,
+  sourceForMagicItem,
+  type MagicItemMarkdownData,
+  type MagicItemSpellCharge,
+  type MagicItemTable,
+  type MagicItemTableRow,
+} from './mappers/Items/MagicItems/magicItemHelpers'
 export { buildOtherItemMarkdown } from './mappers/Items/Other/otherItemMarkdownBuilder'
 export {
   cleanOtherItemTags,

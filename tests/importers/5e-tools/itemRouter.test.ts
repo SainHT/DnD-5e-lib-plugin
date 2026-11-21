@@ -67,7 +67,7 @@ describe('item category router', () => {
     expect(created).toEqual(['SRD 5.2.1/items/unknown-token.md'])
   })
 
-  it('skips magic items during mundane item import', async () => {
+  it('imports magic items through the magic-items folder', async () => {
     const created: string[] = []
     const vault: ItemVault = {
       exists: async () => false,
@@ -83,7 +83,10 @@ describe('item category router', () => {
       },
     }
 
-    await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 1 })
-    expect(created).toEqual(['SRD 5.2.1/items/shield.md'])
+    await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 2, skipped: 0 })
+    expect(created).toEqual([
+      'SRD 5.2.1/items/shield.md',
+      'SRD 5.2.1/magic-items/shield-of-test.md',
+    ])
   })
 })
