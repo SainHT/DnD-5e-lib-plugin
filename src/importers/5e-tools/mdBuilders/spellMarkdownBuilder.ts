@@ -2,7 +2,7 @@
  * Builds the YAML frontmatter and readable body for an imported spell.
  */
 import { yamlStrict as yaml, buildFrontmatter, buildHeading } from './baseMarkdownBuilder'
-import { exportHash } from '../mappers/Spells/spellHelpers'
+import { exportHash } from '../helpers/spellHelpers'
 
 /**
  * Normalized values consumed by the spell Markdown builder.

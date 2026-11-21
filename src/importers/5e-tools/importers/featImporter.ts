@@ -1,5 +1,5 @@
 import type { NoteFoldersSettings } from '../../../platform'
-import { mapFeat } from '../mappers/Feats/featMapper'
+import { mapFeat } from '../mappers/featMapper'
 import { fiveEToolsFolderFor } from '../index'
 import type { FiveEToolsRecord, MappedNote } from '../types'
 import { EntityImporter, type ImportCounts, type WritableVault } from './entityImporter'

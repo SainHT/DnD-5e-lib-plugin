@@ -2,7 +2,7 @@
  * Builds final Markdown for normalized 5etools tools and instruments.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote } from '../itemMarkdownBuilder'
-import { toolExportHash, toolTags, type ToolMarkdownData } from '../../mappers/Items/Tools/toolHelpers'
+import { toolExportHash, toolTags, type ToolMarkdownData } from '../../helpers/items/toolHelpers'
 
 /**
  * Assembles a complete tool or instrument Markdown note.

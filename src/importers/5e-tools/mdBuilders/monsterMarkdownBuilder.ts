@@ -2,7 +2,7 @@
  * Builds the exact frontmatter and statblock fence used by monster import notes.
  */
 import { yamlStrict as yaml, buildFrontmatter } from './baseMarkdownBuilder'
-import { exportHash, type MonsterEntry } from '../mappers/Beastiary/monsterHelpers'
+import { exportHash, type MonsterEntry } from '../helpers//monsterHelpers'
 
 /** Normalized fields consumed while assembling a monster Markdown note. */
 export interface MonsterMarkdownData {

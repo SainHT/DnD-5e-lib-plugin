@@ -2,7 +2,7 @@
  * Builds final Markdown for normalized 5etools gear and food/drink records.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote } from '../itemMarkdownBuilder'
-import { gearExportHash, gearTags, type GearMarkdownData } from '../../mappers/Items/Gear/gearHelpers'
+import { gearExportHash, gearTags, type GearMarkdownData } from '../../helpers/items/gearHelpers'
 
 /**
  * Assembles a complete gear or food/drink Markdown note.

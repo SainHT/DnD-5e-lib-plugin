@@ -1,5 +1,5 @@
 import type { NoteFoldersSettings } from '../../../platform'
-import { mapSpell } from '../mappers/Spells/spellMapper'
+import { mapSpell } from '../mappers/spellMapper'
 import { fiveEToolsFolderFor } from '../index'
 import type { FiveEToolsRecord, MappedNote } from '../types'
 import { EntityImporter, type ImportCounts, type WritableVault } from './entityImporter'

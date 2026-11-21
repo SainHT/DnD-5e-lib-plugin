@@ -2,7 +2,7 @@
  * Builds final Markdown for normalized 5etools shield and armor records.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote } from '../itemMarkdownBuilder'
-import { armorExportHash, armorTags, type ArmorMarkdownData } from '../../mappers/Items/Armor/armorHelpers'
+import { armorExportHash, armorTags, type ArmorMarkdownData } from '../../helpers/items/armorHelpers'
 
 /**
  * Assembles a complete armor or shield Markdown note.

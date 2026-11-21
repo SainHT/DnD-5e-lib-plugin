@@ -2,7 +2,7 @@
  * Builds the Markdown representation of a normalized 5etools weapon.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote, yamlScalar } from '../itemMarkdownBuilder'
-import { exportHash, weaponTags, type WeaponMarkdownData } from '../../mappers/Items/Weapons/weaponHelpers'
+import { exportHash, weaponTags, type WeaponMarkdownData } from '../../helpers/items/weaponHelpers'
 
 /**
  * Assembles a weapon note with stable frontmatter and structured item metadata.

@@ -46,7 +46,7 @@ export function fiveEToolsFolderFor(kind: FiveEToolsEntityKind, folders: NoteFol
 export { FiveEToolsImportCoordinator, type ImportProgress, type ImportReport } from './importCoordinator'
 export { findImportFiles, readImportFiles, IMPORT_CATEGORIES, type VaultAdapter } from './fileHandler'
 export { importFeats, type FeatImportReport, type FeatVault } from './importers/featImporter'
-export { mapFeat } from './mappers/Feats/featMapper'
+export { mapFeat } from './mappers/featMapper'
 export { importSpells, type SpellImportReport, type SpellVault } from './importers/spellImporter'
 export { importMonsters, type MonsterImportReport, type MonsterVault } from './importers/monsterImporter'
 export { importItems, type ItemImportReport, type ItemVault } from './importers/itemImporter'
@@ -61,9 +61,9 @@ export {
   routeItemKind,
   shouldExcludeItem,
   type ItemKind,
-} from './mappers/Items/itemMapper'
-export { mapOtherItem } from './mappers/Items/Other/otherItemMapper'
-export { mapMagicItem as mapMagicItemRecord } from './mappers/Items/MagicItems/magicItemMapper'
+} from './mappers/itemMapper'
+export { mapOtherItem } from './mappers/items/otherItemMapper'
+export { mapMagicItem as mapMagicItemRecord } from './mappers/items/magicItemMapper'
 export { buildMagicItemMarkdown } from './mdBuilders/items/magicItemMarkdownBuilder'
 export {
   cleanInlineTags as cleanMagicItemInlineTags,
@@ -89,7 +89,7 @@ export {
   type MagicItemSpellCharge,
   type MagicItemTable,
   type MagicItemTableRow,
-} from './mappers/Items/MagicItems/magicItemHelpers'
+} from './helpers/items/magicItemHelpers'
 export { buildOtherItemMarkdown } from './mdBuilders/items/otherItemMarkdownBuilder'
 export {
   cleanOtherItemTags,
@@ -104,8 +104,8 @@ export {
   otherItemWeight,
   sourceForOtherItem,
   type OtherItemMarkdownData,
-} from './mappers/Items/Other/otherItemHelpers'
-export { mapGear, mapAdventuringGear } from './mappers/Items/Gear/gearMapper'
+} from './helpers/items/otherItemHelpers'
+export { mapGear, mapAdventuringGear } from './mappers/items/gearMapper'
 export { buildGearMarkdown } from './mdBuilders/items/gearMarkdownBuilder'
 export {
   cleanGearTags,
@@ -118,10 +118,10 @@ export {
   isConsumableGear,
   sourceForGear,
   type GearMarkdownData,
-} from './mappers/Items/Gear/gearHelpers'
-export { mapWeapon } from './mappers/Items/Weapons/weaponMapper'
+} from './helpers/items/gearHelpers'
+export { mapWeapon } from './mappers/items/weaponMapper'
 export { buildWeaponMarkdown } from './mdBuilders/items/weaponMarkdownBuilder'
-export { mapArmorItem, mapArmor, mapArmorOrShield, mapShield } from './mappers/Items/Armor/armorMapper'
+export { mapArmorItem, mapArmor, mapArmorOrShield, mapShield } from './mappers/items/armorMapper'
 export { buildArmorMarkdown } from './mdBuilders/items/armorMarkdownBuilder'
 export {
   armorAc,
@@ -135,7 +135,7 @@ export {
   sourceForArmor,
   slug,
   type ArmorMarkdownData,
-} from './mappers/Items/Armor/armorHelpers'
+} from './helpers/items/armorHelpers'
 export {
   exportHash as exportWeaponHash,
   sourceForWeapon,
@@ -147,8 +147,8 @@ export {
   weaponTypeName,
   weaponTags,
   type WeaponMarkdownData,
-} from './mappers/Items/Weapons/weaponHelpers'
-export { mapMonster, preprocessMonsterTags } from './mappers/Beastiary/monsterMapper'
+} from './helpers/items/weaponHelpers'
+export { mapMonster, preprocessMonsterTags } from './mappers/monsterMapper'
 export { buildMonsterMarkdown, type MonsterMarkdownData } from './mdBuilders/monsterMarkdownBuilder'
 export {
   alignmentName,
@@ -171,8 +171,8 @@ export {
   titleJoin,
   walkSpeed,
   type MonsterEntry,
-} from './mappers/Beastiary/monsterHelpers'
-export { mapSpell, preprocessSpellTags } from './mappers/Spells/spellMapper'
+} from './helpers/monsterHelpers'
+export { mapSpell, preprocessSpellTags } from './mappers/spellMapper'
 export { buildSpellMarkdown, type SpellMarkdownData } from './mdBuilders/spellMarkdownBuilder'
 export {
   castingTimeText,
@@ -190,6 +190,6 @@ export {
   schoolName,
   sourceForRecord,
   textFromEntries,
-} from './mappers/Spells/spellHelpers'
+} from './helpers/spellHelpers'
 export { slugForNote, noteMarkdown } from './markdown'
 export type { FiveEToolsCategory, FiveEToolsRecord, ImportCandidate, ImportFile, MappedNote } from './types'

@@ -5,8 +5,8 @@
  * emitted in the `vault-feat` YAML fence consumed by the feat catalog.
  */
 import { yamlStrict as yamlString, buildFrontmatter, buildHeading } from './baseMarkdownBuilder'
-import type { FeatBenefit, FeatMarkdownData } from '../mappers/Feats/featHelpers'
-import { exportHash, featTags } from '../mappers/Feats/featHelpers'
+import type { FeatBenefit, FeatMarkdownData } from '../helpers/featHelpers'
+import { exportHash, featTags } from '../helpers/featHelpers'
 
 /**
  * Assembles frontmatter, prose body, and the structured benefits fence.

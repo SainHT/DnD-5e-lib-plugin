@@ -1,5 +1,5 @@
 import type { NoteFoldersSettings } from '../../../platform'
-import { mapMonster } from '../mappers/Beastiary/monsterMapper'
+import { mapMonster } from '../mappers/monsterMapper'
 import { fiveEToolsFolderFor } from '../index'
 import type { FiveEToolsRecord, MappedNote } from '../types'
 import { EntityImporter, type ImportCounts, type WritableVault } from './entityImporter'

@@ -2,7 +2,7 @@
  * Builds final Markdown for miscellaneous and fallback 5etools items.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote, yamlScalar } from '../itemMarkdownBuilder'
-import { otherItemExportHash, otherItemTags, type OtherItemMarkdownData } from '../../mappers/Items/Other/otherItemHelpers'
+import { otherItemExportHash, otherItemTags, type OtherItemMarkdownData } from '../../helpers/items/otherItemHelpers'
 
 /**
  * Assembles a complete fallback item Markdown note.

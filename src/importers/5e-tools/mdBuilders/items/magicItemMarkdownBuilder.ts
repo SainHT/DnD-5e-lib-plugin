@@ -10,8 +10,8 @@ import {
   magicItemSpellTable,
   magicItemTags,
   type MagicItemMarkdownData,
-} from '../../mappers/Items/MagicItems/magicItemHelpers'
-import { titleCase } from '../../mappers/mapperHelpers'
+} from '../../helpers/items//magicItemHelpers'
+import { titleCase } from '../../helpers/mapperHelpers'
 import {
   assembleItemNote,
   buildHeading,
