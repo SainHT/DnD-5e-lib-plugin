@@ -1,8 +1,9 @@
 import { findImportFiles, readImportFiles, type VaultAdapter } from './fileHandler'
-import { importFeats, type FeatVault } from './importers/featImporter'
-import { importSpells, type SpellVault } from './importers/spellImporter'
-import { importMonsters, type MonsterVault } from './importers/monsterImporter'
-import { importItems, type ItemVault } from './importers/itemImporter'
+import { importFeats } from './importers/featImporter'
+import { importSpells } from './importers/spellImporter'
+import { importMonsters } from './importers/monsterImporter'
+import { importItems } from './importers/itemImporter'
+import type { WritableVault } from './importers/entityImporter'
 import { DEFAULT_NOTE_FOLDERS, type NoteFoldersSettings } from '../../platform'
 import type { FiveEToolsCategory } from './types'
 
@@ -14,6 +15,15 @@ export interface ImportProgress {
 export interface ImportReport {
   files: number
   items: number
+}
+
+type CategoryImporter = (vault: WritableVault, path: string, folders: NoteFoldersSettings) => Promise<unknown>
+
+const CATEGORY_IMPORTERS: Record<FiveEToolsCategory, CategoryImporter> = {
+  feats: importFeats,
+  spells: importSpells,
+  bestiary: importMonsters,
+  items: importItems,
 }
 
 export class FiveEToolsImportCoordinator {
@@ -36,10 +46,10 @@ export class FiveEToolsImportCoordinator {
       let done = 0
 
       for (const file of files) {
-        if (file.category === 'feats') await this.importFeats(file.path)
-        if (file.category === 'spells' && isSpellVault(this.adapter)) await this.importSpells(file.path)
-        if (file.category === 'bestiary' && isMonsterVault(this.adapter)) await this.importMonsters(file.path)
-        if (file.category === 'items' && isItemVault(this.adapter)) await this.importItems(file.path)
+        if (isWritableVault(this.adapter)) {
+          const importer = CATEGORY_IMPORTERS[file.category]
+          if (importer) await importer(this.adapter, file.path, this.folders())
+        }
         for (let index = 0; index < file.records.length; index += 1) {
           done += 1
           onProgress?.({ done, total })
@@ -57,76 +67,14 @@ export class FiveEToolsImportCoordinator {
       throw cause
     }
   }
-
-  private async importFeats(path: string): Promise<void> {
-    if (!isFeatVault(this.adapter)) throw new Error('Feat imports require a writable Obsidian vault.')
-    await importFeats(this.adapter, path, this.folders())
-  }
-
-  /**
-   * Writes a spell file when this coordinator has a writable vault.
-   *
-   * @param path JSON file path to import.
-   * @returns Promise resolved after spell writing completes.
-   */
-  private async importSpells(path: string): Promise<void> {
-    if (!isSpellVault(this.adapter)) return
-    await importSpells(this.adapter, path, this.folders())
-  }
-
-  /**
-   * Writes monster files when this coordinator has a writable vault.
-   *
-   * @param path JSON file path to import.
-   * @returns Promise resolved after monster writing completes.
-   */
-  private async importMonsters(path: string): Promise<void> {
-    if (!isMonsterVault(this.adapter)) return
-    await importMonsters(this.adapter, path, this.folders())
-  }
-
-  /**
-   * Writes mundane and magic item files when the coordinator has a writable vault.
-   *
-   * @param path JSON file path to import.
-   * @returns Promise resolved after item writing completes.
-   */
-  private async importItems(path: string): Promise<void> {
-    if (!isItemVault(this.adapter)) return
-    await importItems(this.adapter, path, this.folders())
-  }
-}
-
-function isFeatVault(adapter: VaultAdapter): adapter is FeatVault {
-  return 'create' in adapter && typeof adapter.create === 'function' && 'list' in adapter && typeof adapter.list === 'function'
 }
 
 /**
- * Checks whether an adapter supports note creation.
+ * Checks whether an adapter supports note creation in the vault.
  *
  * @param adapter Candidate vault adapter.
- * @returns True when the adapter can create notes.
+ * @returns True when the adapter is a writable vault.
  */
-function isSpellVault(adapter: VaultAdapter): adapter is SpellVault {
-  return 'create' in adapter && typeof adapter.create === 'function' && 'list' in adapter && typeof adapter.list === 'function'
-}
-
-/**
- * Checks whether an adapter supports monster note creation.
- *
- * @param adapter Candidate vault adapter.
- * @returns True when the adapter can create monster notes.
- */
-function isMonsterVault(adapter: VaultAdapter): adapter is MonsterVault {
-  return 'create' in adapter && typeof adapter.create === 'function' && 'list' in adapter && typeof adapter.list === 'function'
-}
-
-/**
- * Checks whether an adapter supports item note creation.
- *
- * @param adapter Candidate vault adapter.
- * @returns True when the adapter can create item notes.
- */
-function isItemVault(adapter: VaultAdapter): adapter is ItemVault {
+export function isWritableVault(adapter: VaultAdapter): adapter is WritableVault {
   return 'create' in adapter && typeof adapter.create === 'function' && 'list' in adapter && typeof adapter.list === 'function'
 }
