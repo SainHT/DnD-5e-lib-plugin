@@ -10,7 +10,7 @@ import { ObsidianProvider } from '../../platform/host'
 import type { PaneHost } from '../../platform/host'
 import type { State } from '../model/state'
 import { FiveEToolsImportCoordinator } from '../../importers'
-import { featVaultFromApp } from '../../importers/host'
+import { writableVaultFromApp } from '../../importers/host'
 
 /**
  * The providers every mount of the app's pages needs, above the router: the
@@ -75,8 +75,9 @@ export function HostProviders({
               }
             : undefined
         }
+        // Import 5etools data from JSON files into the vault.
         importFiveETools={async (path, category) => {
-          const coordinator = new FiveEToolsImportCoordinator(featVaultFromApp(app), message => new Notice(message), plugin.noteFolders)
+          const coordinator = new FiveEToolsImportCoordinator(writableVaultFromApp(app), message => new Notice(message), plugin.noteFolders)
           return coordinator.import(path, category)
         }}
       >
