@@ -38,17 +38,34 @@ describe('5etools file handling', () => {
     ])
   })
 
-  it('requires a category for a single JSON file', async () => {
-    const adapter = new FixtureAdapter({ 'data/items.json': '{"item":[{"name":"Torch"}]}' }, ['data'])
-    await expect(findImportFiles(adapter, 'data/items.json')).rejects.toThrow('Choose a category')
+  it('auto-detects or accepts an explicit category for a single JSON file', async () => {
+    const adapter = new FixtureAdapter(
+      {
+        'data/items.json': '{"item":[{"name":"Torch"}]}',
+        'data/unknown.json': '{"fluff":[{"name":"Torch"}]}',
+      },
+      ['data'],
+    )
+
+    // Auto-detects category from top-level key when no manual category is passed
+    await expect(findImportFiles(adapter, 'data/items.json')).resolves.toEqual([
+      { path: 'data/items.json', category: 'items' },
+    ])
+
+    // Explicit category override still works
     await expect(findImportFiles(adapter, 'data/items.json', 'items')).resolves.toEqual([
       { path: 'data/items.json', category: 'items' },
     ])
+
+    // Rejects when category cannot be auto-detected and none is provided
+    await expect(findImportFiles(adapter, 'data/unknown.json')).rejects.toThrow(
+      'Could not detect a 5etools category',
+    )
   })
 
   it('rejects non-JSON files', async () => {
     const adapter = new FixtureAdapter({ 'data/items.txt': '{}' }, ['data'])
-    await expect(findImportFiles(adapter, 'data/items.txt')).rejects.toThrow('contains no 5etools JSON files')
+    await expect(findImportFiles(adapter, 'data/items.txt')).rejects.toThrow('The folder contains no recognized 5etools JSON files.')
   })
 
   it('reads named records from a 5etools file', async () => {

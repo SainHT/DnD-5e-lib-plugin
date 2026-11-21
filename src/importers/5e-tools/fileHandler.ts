@@ -6,18 +6,6 @@ export interface VaultAdapter {
   read(path: string): Promise<string>
 }
 
-const CATEGORY_FOLDERS: Readonly<Record<string, FiveEToolsCategory>> = {
-  spells: 'spells',
-  spell: 'spells',
-  bestiary: 'bestiary',
-  monsters: 'bestiary',
-  monster: 'bestiary',
-  items: 'items',
-  item: 'items',
-  feats: 'feats',
-  feat: 'feats',
-}
-
 export const IMPORT_CATEGORIES: readonly { value: FiveEToolsCategory; label: string }[] = [
   { value: 'spells', label: 'Spells' },
   { value: 'bestiary', label: 'Monsters' },
@@ -25,10 +13,22 @@ export const IMPORT_CATEGORIES: readonly { value: FiveEToolsCategory; label: str
   { value: 'feats', label: 'Feats' },
 ]
 
-export function categoryForFolder(folder: string): FiveEToolsCategory | null {
-  return CATEGORY_FOLDERS[folder.toLowerCase()] ?? null
+/**
+ * Maps top-level 5etools JSON array keys to their corresponding importer category.
+ * Add new entity keys here as additional importers are supported.
+ */
+export const JSON_KEY_TO_CATEGORY: Readonly<Record<string, FiveEToolsCategory>> = {
+  monster: 'bestiary',
+  feat: 'feats',
+  item: 'items',
+  baseitem: 'items',
+  spell: 'spells',
 }
 
+/**
+ * Resolves a single .json file or recursively scans a directory for 5etools JSON files,
+ * automatically detecting each file's importer category from its top-level JSON keys.
+ */
 export async function findImportFiles(
   adapter: VaultAdapter,
   inputPath: string,
@@ -37,23 +37,34 @@ export async function findImportFiles(
   const path = normalisePath(inputPath)
   if (!path) throw new Error('Enter a 5etools JSON file or folder path.')
 
-  const isFile = path.toLowerCase().endsWith('.json')
-  if (isFile) {
-    if (!(await adapter.exists(path, true))) throw new Error(`The JSON file was not found: ${path}`)
-    if (!singleFileCategory) throw new Error('Choose a category for a single JSON file.')
-    return [{ path, category: singleFileCategory }]
+  if (!(await adapter.exists(path, true))) {
+    throw new Error(`The path was not found: ${path}`)
   }
 
-  if (!(await adapter.exists(path, true))) throw new Error(`The folder was not found: ${path}`)
-  const listed = await adapter.list(path)
-  const candidates: ImportCandidate[] = []
-  for (const folder of listed.folders) {
-    const category = categoryForFolder(folder.slice(path ? `${path}/`.length : 0).split('/')[0])
-    if (!category) continue
-    const files = await adapter.list(folder)
-    candidates.push(...files.files.filter(isJson).map(file => ({ path: file, category })))
+  // Single-file mode
+  if (isJson(path)) {
+    const category = singleFileCategory ?? (await detectCategoryFromFile(adapter, path))
+    if (!category) {
+      throw new Error(`Could not detect a 5etools category for: ${path}`)
+    }
+    return [{ path, category }]
   }
-  if (candidates.length === 0) throw new Error('The folder contains no 5etools JSON files in spells, bestiary, items, or feats.')
+
+  // Folder / Auto mode: recursively collect all .json files and classify by content
+  const jsonFiles = await collectJsonFilesRecursively(adapter, path)
+  const candidates: ImportCandidate[] = []
+
+  for (const filePath of jsonFiles) {
+    const category = await detectCategoryFromFile(adapter, filePath)
+    if (category) {
+      candidates.push({ path: filePath, category })
+    }
+  }
+
+  if (candidates.length === 0) {
+    throw new Error('The folder contains no recognized 5etools JSON files.')
+  }
+
   return candidates
 }
 
@@ -64,6 +75,48 @@ export async function readImportFiles(adapter: VaultAdapter, candidates: ImportC
       records: recordsFromJson(await adapter.read(candidate.path), candidate.path),
     })),
   )
+}
+
+/**
+ * Recursively traverses a folder and returns all `.json` file paths, skipping non-JSON files.
+ */
+async function collectJsonFilesRecursively(adapter: VaultAdapter, dirPath: string): Promise<string[]> {
+  const listed = await adapter.list(dirPath)
+  const results: string[] = listed.files.filter(isJson)
+
+  for (const subFolder of listed.folders) {
+    const nested = await collectJsonFilesRecursively(adapter, subFolder)
+    results.push(...nested)
+  }
+
+  return results
+}
+
+/**
+ * Reads a JSON file and determines its importer category by matching top-level
+ * keys against `JSON_KEY_TO_CATEGORY`.
+ */
+export async function detectCategoryFromFile(
+  adapter: VaultAdapter,
+  filePath: string,
+): Promise<FiveEToolsCategory | null> {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(await adapter.read(filePath))
+  } catch {
+    return null
+  }
+
+  if (!parsed || typeof parsed !== 'object') return null
+  const data = parsed as Record<string, unknown>
+
+  for (const [key, category] of Object.entries(JSON_KEY_TO_CATEGORY)) {
+    if (Array.isArray(data[key])) {
+      return category
+    }
+  }
+
+  return null
 }
 
 function isJson(path: string): boolean {
@@ -78,7 +131,13 @@ function recordsFromJson(text: string, path: string) {
     throw new Error(`Could not parse JSON: ${path}`)
   }
   if (!parsed || typeof parsed !== 'object') throw new Error(`The JSON file has no 5etools records: ${path}`)
-  const records = Object.values(parsed).find(value => Array.isArray(value))
+
+  const data = parsed as Record<string, unknown>
+  const knownKey = Object.keys(JSON_KEY_TO_CATEGORY).find(key => Array.isArray(data[key]))
+  const records = knownKey
+    ? data[knownKey]
+    : Object.values(data).find(value => Array.isArray(value))
+
   if (!Array.isArray(records) || !records.every(record => record && typeof record === 'object' && typeof record.name === 'string')) {
     throw new Error(`The JSON file has no named 5etools records: ${path}`)
   }
