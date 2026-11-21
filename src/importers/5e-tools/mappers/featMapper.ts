@@ -6,15 +6,15 @@
  * `featMarkdownBuilder`, keeping the public mapper easy to reuse for imports
  * and tests.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../types'
-import { buildFeatMarkdown } from '../../mdBuilders/featMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../types'
+import { buildFeatMarkdown } from '../mdBuilders/featMarkdownBuilder'
 import {
   abilityIncreaseFromRecord,
   benefitsFromEntries,
   featKind,
   prerequisiteText,
   sourceForRecord,
-} from './featHelpers'
+} from '../helpers/featHelpers'
 
 /**
  * Maps a raw 5etools feat record to the importer's standard mapped-note shape.

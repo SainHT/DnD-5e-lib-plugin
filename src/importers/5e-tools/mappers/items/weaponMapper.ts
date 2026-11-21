@@ -4,8 +4,8 @@
  * Parsing stays in `weaponHelpers` and rendering stays in
  * `weaponMarkdownBuilder`, keeping this mapper useful for both imports and tests.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildWeaponMarkdown } from '../../../mdBuilders/items/weaponMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
+import { buildWeaponMarkdown } from '../../mdBuilders/items/weaponMarkdownBuilder'
 import {
   sourceForWeapon,
   stringValue,
@@ -17,7 +17,7 @@ import {
   weaponRange,
   weaponTypeName,
   type WeaponMarkdownData,
-} from './weaponHelpers'
+} from '../../helpers/items/weaponHelpers'
 
 /**
  * Maps a raw 5etools weapon record to the standard importer note shape.

@@ -4,8 +4,8 @@
  * Record interpretation stays in `spellHelpers`, while Markdown assembly stays
  * in `spellMarkdownBuilder`, making this coordinator useful in isolation.
  */
-import type { MappedNote, FiveEToolsRecord } from '../../types'
-import { buildSpellMarkdown, type SpellMarkdownData } from '../../mdBuilders/spellMarkdownBuilder'
+import type { MappedNote, FiveEToolsRecord } from '../types'
+import { buildSpellMarkdown, type SpellMarkdownData } from '../mdBuilders/spellMarkdownBuilder'
 import {
   classesFromRecord,
   cantripDiceFromRecord,
@@ -21,7 +21,7 @@ import {
   concentrationFromRecord,
   ritualFromRecord,
   textFromEntries,
-} from './spellHelpers'
+} from '../helpers/spellHelpers'
 
 /**
  * Maps one 5etools spell record to the importer's common mapped-note shape.

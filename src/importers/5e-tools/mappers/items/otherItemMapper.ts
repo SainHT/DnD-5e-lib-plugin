@@ -1,8 +1,8 @@
 /**
  * Coordinates transformation of fallback, miscellaneous, and mount-like items.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildOtherItemMarkdown } from '../../../mdBuilders/items/otherItemMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
+import { buildOtherItemMarkdown } from '../../mdBuilders/items/otherItemMarkdownBuilder'
 import {
   otherItemCostCopper,
   otherItemCarryingCapacity,
@@ -12,7 +12,7 @@ import {
   otherItemWeight,
   sourceForOtherItem,
   type OtherItemMarkdownData,
-} from './otherItemHelpers'
+} from '../../helpers/items/otherItemHelpers'
 
 /**
  * Maps one miscellaneous item record through the generic item note format.

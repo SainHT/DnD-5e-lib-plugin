@@ -1,8 +1,8 @@
 /**
  * Coordinates conversion of a raw 5etools monster record into a mapped note.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../types'
-import { buildMonsterMarkdown, type MonsterMarkdownData } from '../../mdBuilders/monsterMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../types'
+import { buildMonsterMarkdown, type MonsterMarkdownData } from '../mdBuilders/monsterMarkdownBuilder'
 import {
   alignmentName,
   armorClass,
@@ -24,7 +24,7 @@ import {
   titleJoin,
   walkSpeed,
   type MonsterEntry,
-} from './monsterHelpers'
+} from '../helpers/monsterHelpers'
 
 /**
  * Maps one raw 5etools monster record to a complete vault note.

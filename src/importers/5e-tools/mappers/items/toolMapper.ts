@@ -4,8 +4,8 @@
  * Parsing is delegated to `toolHelpers` and rendering to
  * `toolMarkdownBuilder`, keeping this mapper reusable and testable.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildToolMarkdown } from './toolMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
+import { buildToolMarkdown } from '../../mdBuilders/items/toolMarkdownBuilder'
 import {
   parseToolEntries,
   sourceForTool,
@@ -13,7 +13,7 @@ import {
   toolTypeName,
   toolWeight,
   type ToolMarkdownData,
-} from './toolHelpers'
+} from '../../helpers/items/toolHelpers'
 
 /**
  * Maps a raw 5etools tool or instrument record to a standard mapped note.

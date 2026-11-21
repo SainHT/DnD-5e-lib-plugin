@@ -5,13 +5,13 @@
  * routed to the magic-items pipeline. Within mundane items, weapons are fully
  * mapped while initial category helpers provide stable fallback routing.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../types'
-import { mapWeapon } from './Weapons/weaponMapper'
-import { mapArmorOrShield } from './Armor/armorMapper'
-import { mapAdventuringGear } from './Gear/gearMapper'
-import { mapTool } from './Tools/toolMapper'
-import { mapOtherItem } from './Other/otherItemMapper'
-import { mapMagicItem as mapMagicItemRecord } from './MagicItems/magicItemMapper'
+import type { FiveEToolsRecord, MappedNote } from '../types'
+import { mapWeapon } from './items/weaponMapper'
+import { mapArmorOrShield } from './items/armorMapper'
+import { mapAdventuringGear } from './items/gearMapper'
+import { mapTool } from './items/toolMapper'
+import { mapOtherItem } from './items/otherItemMapper'
+import { mapMagicItem as mapMagicItemRecord } from './items/magicItemMapper'
 
 /** Supported mundane item-kind categories. */
 export type ItemKind =

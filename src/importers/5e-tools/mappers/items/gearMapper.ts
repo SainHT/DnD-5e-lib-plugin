@@ -4,8 +4,8 @@
  * Parsing is delegated to `gearHelpers` and rendering to
  * `gearMarkdownBuilder`, keeping this mapper reusable and testable.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildGearMarkdown } from '../../../mdBuilders/items/gearMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
+import { buildGearMarkdown } from '../../mdBuilders/items/gearMarkdownBuilder'
 import {
   gearCostCopper,
   gearEntriesText,
@@ -14,7 +14,7 @@ import {
   isConsumableGear,
   sourceForGear,
   type GearMarkdownData,
-} from './gearHelpers'
+} from '../../helpers/items/gearHelpers'
 
 /**
  * Maps a raw 5etools gear record to a standard mapped note.

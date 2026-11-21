@@ -4,8 +4,8 @@
  * The mapper has no vault or Obsidian dependencies and delegates rendering to
  * the magic-item Markdown builder.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildMagicItemMarkdown } from '../../../mdBuilders/items/magicItemMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
+import { buildMagicItemMarkdown } from '../../mdBuilders/items/magicItemMarkdownBuilder'
 import {
   magicItemAttunement,
   magicItemEntriesMarkdown,
@@ -20,7 +20,7 @@ import {
   magicItemWeight,
   sourceForMagicItem,
   type MagicItemMarkdownData,
-} from './magicItemHelpers'
+} from '../../helpers/items/magicItemHelpers'
 
 /**
  * Maps one 5etools magic-item record to a mapped magic-item note.

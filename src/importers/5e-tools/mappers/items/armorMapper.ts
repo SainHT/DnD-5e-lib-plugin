@@ -4,8 +4,8 @@
  * This module distinguishes shield records (`S`) from body armor records
  * (`LA`, `MA`, `HA`) and delegates rendering to the shared armor builder.
  */
-import type { FiveEToolsRecord, MappedNote } from '../../../types'
-import { buildArmorMarkdown } from '../../../mdBuilders/items/armorMarkdownBuilder'
+import type { FiveEToolsRecord, MappedNote } from '../../types'
+import { buildArmorMarkdown } from '../../mdBuilders/items/armorMarkdownBuilder'
 import {
   armorAc,
   armorName,
@@ -15,7 +15,7 @@ import {
   isShield,
   sourceForArmor,
   type ArmorMarkdownData,
-} from './armorHelpers'
+} from '../../helpers/items/armorHelpers'
 
 /**
  * Routes an armor-category record to its shield or body-armor mapper.
