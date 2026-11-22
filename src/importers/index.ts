@@ -17,6 +17,7 @@ export {
   mapItem,
   type FiveEToolsEntityKind,
   type FiveEToolsCategory,
+  type ImportProgress,
   type ImportReport,
   type VaultAdapter,
   type FeatImportReport,

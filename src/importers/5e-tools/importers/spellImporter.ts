@@ -36,6 +36,11 @@ export class SpellImporter extends EntityImporter {
  * @param folders Configured rules-folder settings.
  * @returns Import counts.
  */
-export async function importSpells(vault: SpellVault, jsonPath: string, folders: NoteFoldersSettings): Promise<SpellImportReport> {
-  return new SpellImporter(vault, folders).import(jsonPath)
+export async function importSpells(
+  vault: SpellVault,
+  jsonPath: string,
+  folders: NoteFoldersSettings,
+  onRecord?: (done: number, total: number) => void,
+): Promise<SpellImportReport> {
+  return new SpellImporter(vault, folders).import(jsonPath, onRecord)
 }

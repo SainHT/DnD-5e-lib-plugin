@@ -8,7 +8,7 @@ import { CompendiumProvider } from '../../compendium/host'
 import { GmProvider, useMonsterEncounter } from '../../gm/host'
 import { CatalogsProvider } from '../../catalogs/host'
 import { PlatformProvider } from '../../platform/host'
-import type { FiveEToolsCategory, ImportReport } from '../../importers'
+import type { FiveEToolsCategory, ImportProgress, ImportReport } from '../../importers'
 
 /**
  * Every domain's provider, nested once (MYDND-199).
@@ -73,7 +73,11 @@ export function DomainProviders({
   privateProviders?: (children: ReactNode) => ReactNode
   /** The SRD edition only; see `useSrdNotes`. */
   srdNotes?: SrdNotesHost
-  importFiveETools?: (path: string, category?: FiveEToolsCategory) => Promise<ImportReport>
+  importFiveETools?: (
+    path: string,
+    category?: FiveEToolsCategory,
+    onProgress?: (progress: ImportProgress) => void,
+  ) => Promise<ImportReport>
   children: ReactNode
 }) {
   // A new object per render would re-render every GM consumer on every render
@@ -122,7 +126,9 @@ export function DomainProviders({
 }
 
 const SrdNotesContext = createContext<SrdNotesHost | null>(null)
-const FiveEToolsContext = createContext<((path: string, category?: FiveEToolsCategory) => Promise<ImportReport>) | null>(null)
+const FiveEToolsContext = createContext<
+  ((path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void) => Promise<ImportReport>) | null
+>(null)
 
 /**
  * The SRD edition's notes, installed from the bundle (MYDND-185), for Home's
@@ -133,6 +139,8 @@ export function useSrdNotes(): SrdNotesHost | null {
   return useContext(SrdNotesContext)
 }
 
-export function useFiveEToolsImport(): ((path: string, category?: FiveEToolsCategory) => Promise<ImportReport>) | null {
+export function useFiveEToolsImport(): (
+  (path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void) => Promise<ImportReport>
+) | null {
   return useContext(FiveEToolsContext)
 }

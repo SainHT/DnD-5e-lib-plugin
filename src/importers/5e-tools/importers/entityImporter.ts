@@ -56,13 +56,16 @@ export abstract class EntityImporter {
    * @param jsonPath Vault path to a JSON file.
    * @returns Import counts.
    */
-  async import(jsonPath: string): Promise<ImportCounts> {
+  async import(jsonPath: string, onRecord?: (done: number, total: number) => void): Promise<ImportCounts> {
     const records = await this.readRecords(jsonPath)
     let imported = 0
     let skipped = 0
+    let processed = 0
     for (const record of records) {
       if (this.shouldSkip(record)) {
         skipped += 1
+        processed += 1
+        onRecord?.(processed, records.length)
         continue
       }
       const note = this.map(record)
@@ -70,11 +73,15 @@ export abstract class EntityImporter {
       const path = `${folder}/${slugForNote(note.name)}.md`
       if (await this.vault.exists(path)) {
         skipped += 1
+        processed += 1
+        onRecord?.(processed, records.length)
         continue
       }
       await this.ensureFolder(folder)
       await this.vault.create(path, note.markdown)
       imported += 1
+      processed += 1
+      onRecord?.(processed, records.length)
     }
     return { imported, skipped }
   }

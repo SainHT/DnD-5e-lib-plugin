@@ -36,6 +36,7 @@ export async function importFeats(
   vault: FeatVault,
   jsonPath: string,
   folders: NoteFoldersSettings,
+  onRecord?: (done: number, total: number) => void,
 ): Promise<FeatImportReport> {
-  return new FeatImporter(vault, folders).import(jsonPath)
+  return new FeatImporter(vault, folders).import(jsonPath, onRecord)
 }

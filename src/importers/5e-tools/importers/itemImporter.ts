@@ -52,6 +52,7 @@ export async function importItems(
   vault: ItemVault,
   jsonPath: string,
   folders: NoteFoldersSettings,
+  onRecord?: (done: number, total: number) => void,
 ): Promise<ItemImportReport> {
-  return new ItemImporter(vault, folders).import(jsonPath)
+  return new ItemImporter(vault, folders).import(jsonPath, onRecord)
 }

@@ -76,9 +76,9 @@ export function HostProviders({
             : undefined
         }
         // Import 5etools data from JSON files into the vault.
-        importFiveETools={async (path, category) => {
+        importFiveETools={async (path, category, onProgress) => {
           const coordinator = new FiveEToolsImportCoordinator(writableVaultFromApp(app), message => new Notice(message), plugin.noteFolders)
-          return coordinator.import(path, category)
+          return coordinator.import(path, category, onProgress)
         }}
       >
         {/* Inside `ObsidianProvider` because it needs the host `App` for the

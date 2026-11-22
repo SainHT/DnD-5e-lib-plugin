@@ -12,7 +12,7 @@ import { booksOf, copperLabel, type ShelfKind } from '../../compendium'
 import { useCompendium } from '../../compendium/host'
 import { PLUGIN_TITLE } from '../../platform'
 import { useActiveCampaign, useCampaigns, useCatalogRows, useElementWidth, usePlatform, Empty } from '../../platform/host'
-import { IMPORT_CATEGORIES } from '../../importers'
+import { IMPORT_CATEGORIES, type ImportProgress } from '../../importers'
 import { useFiveEToolsImport } from './context'
 import type { Campaign } from '../../platform'
 
@@ -455,18 +455,21 @@ function FiveEToolsSection({ narrow }: { narrow: boolean }) {
   const [category, setCategory] = useState<(typeof IMPORT_CATEGORIES)[number]['value']>('spells')
   const isFile = path.trim().toLowerCase().endsWith('.json')
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<ImportProgress | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const runImport = async () => {
     if (!importer || !path.trim()) return
     setBusy(true)
     setError(null)
+    setProgress(null)
     try {
-      await importer(path.trim(), isFile ? category : undefined)
+      await importer(path.trim(), isFile ? category : undefined, setProgress)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
     } finally {
       setBusy(false)
+      setProgress(null)
     }
   }
 
@@ -509,7 +512,11 @@ function FiveEToolsSection({ narrow }: { narrow: boolean }) {
         disabled={!importer || !path.trim() || busy}
         onClick={() => void runImport()}
       >
-        Import 5etools Data
+        {progress
+          ? `${progress.file} (${progress.current} / ${progress.total})`
+          : busy
+            ? 'Importing…'
+            : 'Import 5etools Data'}
       </button>
     </Section>
   )

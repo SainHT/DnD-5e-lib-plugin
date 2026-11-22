@@ -3,12 +3,13 @@ import { importFeats } from './importers/featImporter'
 import { importSpells } from './importers/spellImporter'
 import { importMonsters } from './importers/monsterImporter'
 import { importItems } from './importers/itemImporter'
-import type { WritableVault } from './importers/entityImporter'
+import type { ImportCounts, WritableVault } from './importers/entityImporter'
 import { DEFAULT_NOTE_FOLDERS, type NoteFoldersSettings } from '../../platform'
 import type { FiveEToolsCategory } from './types'
 
 export interface ImportProgress {
-  done: number
+  file: string
+  current: number
   total: number
 }
 
@@ -17,7 +18,12 @@ export interface ImportReport {
   items: number
 }
 
-type CategoryImporter = (vault: WritableVault, path: string, folders: NoteFoldersSettings) => Promise<unknown>
+type CategoryImporter = (
+  vault: WritableVault,
+  path: string,
+  folders: NoteFoldersSettings,
+  onRecord?: (done: number, total: number) => void,
+) => Promise<ImportCounts>
 
 const CATEGORY_IMPORTERS: Record<FiveEToolsCategory, CategoryImporter> = {
   feats: importFeats,
@@ -35,24 +41,23 @@ export class FiveEToolsImportCoordinator {
 
   async import(path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void): Promise<ImportReport> {
     try {
-      this.notify('Scanning data…')
       const candidates = await findImportFiles(this.adapter, path, category)
       const files = await readImportFiles(this.adapter, candidates)
       const report: ImportReport = {
         files: files.length,
         items: files.reduce((count, file) => count + file.records.length, 0),
       }
-      const total = report.items
-      let done = 0
 
       for (const file of files) {
+        const fileName = file.path.split('/').pop() ?? file.path
         if (isWritableVault(this.adapter)) {
           const importer = CATEGORY_IMPORTERS[file.category]
-          if (importer) await importer(this.adapter, file.path, this.folders())
-        }
-        for (let index = 0; index < file.records.length; index += 1) {
-          done += 1
-          onProgress?.({ done, total })
+          if (importer) {
+            onProgress?.({ file: fileName, current: 0, total: file.records.length })
+            await importer(this.adapter, file.path, this.folders(), (fileDone, fileTotal) => {
+              onProgress?.({ file: fileName, current: fileDone, total: fileTotal })
+            })
+          }
         }
       }
       this.notify(
