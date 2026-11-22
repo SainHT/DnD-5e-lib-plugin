@@ -84,4 +84,30 @@ describe('feat mapper', () => {
       )}`,
     )
   })
+
+  it('converts feat inline reference and dice tags', () => {
+    const markdown = mapFeat({
+      name: 'Tagged Feat',
+      category: 'G',
+      entries: [
+        'Gain {@item Shield|XBHP}, cast {@spell Fireball|XPHB|a fireball}, and learn {@variantrule Proficiency|XPHB}.',
+        'Roll {@dice 1d10} or {@dice 2d6 + 3}.',
+        {
+          type: 'entries',
+          name: 'Emanation Benefit',
+          entries: [
+            'Use {@itemProperty T|XPHB|Thrown}.',
+            { type: 'list', items: ['Carry {@item Shield|XPHB|a shield}.'] },
+          ],
+        },
+      ],
+    }).markdown
+
+    expect(markdown).toContain('[[Shield]]')
+    expect(markdown).toContain('[[Fireball|a fireball]]')
+    expect(markdown).toContain('[[Proficiency]]')
+    expect(markdown).toContain('Roll 1d10 or 2d6 + 3.')
+    expect(markdown).toContain('Thrown')
+    expect(markdown).toContain('- Carry [[Shield|a shield]].')
+  })
 })

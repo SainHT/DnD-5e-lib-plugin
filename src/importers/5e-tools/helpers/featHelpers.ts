@@ -83,6 +83,46 @@ export function featTags(kind: string, source: string): string[] {
 }
 
 /**
+ * Converts feat-only 5etools reference tags into Obsidian wiki links and
+ * delegates remaining inline markup to the existing shared monster sanitizer.
+ *
+ * @param value Raw feat prose.
+ * @returns Markdown text with item, spell, variant-rule, and dice tags resolved.
+ */
+export function preprocessFeatTags(value: string): string {
+  const withLinks = value
+    .replace(/\{@(?:item|spell|variantrule)\s+([^}]+)\}/gi, (_match, content: string) => {
+      const segments = content.split('|')
+      const baseName = segments[0]?.trim() ?? ''
+      const displayName = segments[2]?.trim()
+      if (!baseName) return ''
+      return displayName ? `[[${baseName}|${displayName}]]` : `[[${baseName}]]`
+    })
+    .replace(/\{@dice\s+([^}]+)\}/gi, (_match, dice: string) => dice.trim())
+
+  return preprocessTags(withLinks)
+}
+
+/**
+ * Converts all supported 5etools inline tags into readable text.
+ *
+ * @param value Raw 5etools prose.
+ * @returns Markdown-safe human-readable prose.
+ */
+export function preprocessTags(value: string): string {
+  return value
+    .replace(/\{@scaledamage\s+([^|}]+)\|[^|}]+\|([^}]+)\}/gi, '$2')
+    .replace(/\{@damage\s+([^}]+)\}/gi, '$1')
+    .replace(/\{@(?:b|bold)\s+([^}]+)\}/gi, '**$1**')
+    .replace(/\{@(?:i|italic)\s+([^}]+)\}/gi, '*$1*')
+    .replace(/\{@(?:spell|condition|item|creature|class|skill|sense)\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
+    .replace(/\{@itemProperty\s+([^|}]+)(?:\|[^|}]*)?(?:\|([^}]+))?\}/gi, '$2')
+    .replace(/\{@variantrule\s+[^|}]+\|[^|}]+\|([^}]+)\}/gi, '$1')
+    .replace(/\{@(?:hit|dc)\s+([^}]+)\}/gi, '$1')
+    .replace(/\{@link\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
+}
+
+/**
  * Converts all prerequisite alternatives into display text.
  *
  * @param value Raw 5etools prerequisite array.
@@ -114,7 +154,7 @@ export function prerequisiteText(value: unknown): string {
         const text = prerequisiteValue(entry[key], key === 'feature')
         if (text) parts.push(text)
       }
-      return parts.join(', ')
+      return preprocessFeatTags(parts.join(', '))
     })
     .filter(Boolean)
     .join('; ')
@@ -132,10 +172,13 @@ export function benefitsFromEntries(entries: unknown, abilityIncrease: AbilityIn
   const overview: string[] = []
   const benefits: FeatBenefit[] = []
   for (const entry of values) {
-    if (typeof entry === 'string') overview.push(entry)
+    if (typeof entry === 'string') overview.push(preprocessFeatTags(entry))
     else if (isEntry(entry)) {
       const text = textFromEntries(entry.entries)
-      if (entry.name) benefits.push({ key: slug(entry.name), name: entry.name, text })
+      if (entry.name) {
+        const name = preprocessFeatTags(entry.name)
+        benefits.push({ key: slug(name), name, text })
+      }
       else overview.push(text)
     } else overview.push(textFromEntry(entry))
   }
@@ -205,10 +248,15 @@ function textFromEntries(entries: unknown): string {
  * @returns Rendered text, including bullet prefixes for list items.
  */
 function textFromEntry(value: unknown): string {
-  if (typeof value === 'string') return value
+  if (typeof value === 'string') return preprocessFeatTags(value)
   if (!value || typeof value !== 'object') return ''
   const entry = value as Record<string, unknown>
   if (Array.isArray(entry.entries)) return textFromEntries(entry.entries)
+  if (typeof entry.entry === 'string') {
+    const text = preprocessFeatTags(entry.entry)
+    const name = stringValue(entry.name)
+    return name ? `**${preprocessFeatTags(name)}.** ${text}` : text
+  }
   if (entry.type === 'list' && Array.isArray(entry.items)) {
     return entry.items
       .map(item => textFromEntry(item))
