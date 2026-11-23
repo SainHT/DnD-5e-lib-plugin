@@ -3,6 +3,7 @@ import { importFeats } from './importers/featImporter'
 import { importSpells } from './importers/spellImporter'
 import { importMonsters } from './importers/monsterImporter'
 import { importItems } from './importers/itemImporter'
+import { importBackgrounds } from './importers/backgroundImporter'
 import type { ImportCounts, WritableVault } from './importers/entityImporter'
 import { DEFAULT_NOTE_FOLDERS, type NoteFoldersSettings } from '../../platform'
 import type { FiveEToolsCategory } from './types'
@@ -30,6 +31,7 @@ const CATEGORY_IMPORTERS: Record<FiveEToolsCategory, CategoryImporter> = {
   spells: importSpells,
   bestiary: importMonsters,
   items: importItems,
+  backgrounds: importBackgrounds,
 }
 
 export class FiveEToolsImportCoordinator {

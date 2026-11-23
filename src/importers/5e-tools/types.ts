@@ -1,6 +1,6 @@
 import type { FiveEToolsEntityKind } from './index'
 
-export type FiveEToolsCategory = 'spells' | 'bestiary' | 'items' | 'feats'
+export type FiveEToolsCategory = 'spells' | 'bestiary' | 'items' | 'feats' | 'backgrounds'
 
 export interface FiveEToolsRecord {
   name: string

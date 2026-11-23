@@ -11,6 +11,7 @@ export const IMPORT_CATEGORIES: readonly { value: FiveEToolsCategory; label: str
   { value: 'bestiary', label: 'Monsters' },
   { value: 'items', label: 'Items' },
   { value: 'feats', label: 'Feats' },
+  { value: 'backgrounds', label: 'Backgrounds' },
 ]
 
 /**
@@ -23,6 +24,7 @@ export const JSON_KEY_TO_CATEGORY: Readonly<Record<string, FiveEToolsCategory>> 
   item: 'items',
   baseitem: 'items',
   spell: 'spells',
+  background: 'backgrounds',
 }
 
 /**

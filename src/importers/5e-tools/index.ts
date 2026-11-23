@@ -48,6 +48,7 @@ export { FiveEToolsImportCoordinator, isWritableVault, type ImportProgress, type
 export { findImportFiles, readImportFiles, IMPORT_CATEGORIES, type VaultAdapter } from './fileHandler'
 
 // Entity Importers
+export { importBackgrounds, type BackgroundImportReport, type BackgroundVault } from './importers/backgroundImporter'
 export { importFeats, type FeatImportReport, type FeatVault } from './importers/featImporter'
 export { importSpells, type SpellImportReport, type SpellVault } from './importers/spellImporter'
 export { importMonsters, type MonsterImportReport, type MonsterVault } from './importers/monsterImporter'
@@ -55,6 +56,7 @@ export { importItems, type ItemImportReport, type ItemVault } from './importers/
 export { type WritableVault } from './importers/entityImporter'
 
 // Mappers & Routing
+export { mapBackground } from './mappers/backgroundMapper'
 export { mapFeat } from './mappers/featMapper'
 export { mapSpell, preprocessSpellTags } from './mappers/spellMapper'
 export { mapMonster, preprocessMonsterTags } from './mappers/monsterMapper'
