@@ -9,6 +9,7 @@ import { DdbConvertProvider, FileImport } from '../../ddbConvert/host'
 import { GmProvider, useMonsterEncounter } from '../../gm/host'
 import { CatalogsProvider } from '../../catalogs/host'
 import { PlatformProvider } from '../../platform/host'
+import type { FiveEToolsCategory, ImportProgress, ImportReport } from '../../importers'
 
 /**
  * Every domain's provider, nested once (MYDND-199).
@@ -41,6 +42,7 @@ export function DomainProviders({
   privateProviders,
   srdNotes,
   noteBuilder,
+  importFiveETools,
   children,
 }: {
   content: Content
@@ -90,6 +92,13 @@ export function DomainProviders({
    * and a re-render never remounts the form.
    */
   noteBuilder?: () => ReactNode
+                                 
+  // Report of progress in regards to where in files the importer is
+  importFiveETools?: (
+    path: string,
+    category?: FiveEToolsCategory,
+    onProgress?: (progress: ImportProgress) => void,
+  ) => Promise<ImportReport>
   children: ReactNode
 }) {
   // A new object per render would re-render every GM consumer on every render
@@ -135,6 +144,9 @@ export function DomainProviders({
                     {privateProviders ? privateProviders(children) : children}
                   </DdbConvertProvider>
                 </NoteBuilderContext.Provider>
+                <FiveEToolsContext.Provider value={importFiveETools ?? null}>
+                  {privateProviders ? privateProviders(children) : children}
+                </FiveEToolsContext.Provider>
               </SrdNotesContext.Provider>
             </CatalogsProvider>
           </GmProvider>
@@ -145,6 +157,9 @@ export function DomainProviders({
 }
 
 const SrdNotesContext = createContext<SrdNotesHost | null>(null)
+const FiveEToolsContext = createContext<
+  ((path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void) => Promise<ImportReport>) | null
+>(null)
 
 const NoteBuilderContext = createContext<(() => ReactNode) | null>(null)
 
@@ -160,4 +175,10 @@ export function useNoteBuilder(): (() => ReactNode) | null {
  */
 export function useSrdNotes(): SrdNotesHost | null {
   return useContext(SrdNotesContext)
+}
+
+export function useFiveEToolsImport(): (
+  (path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void) => Promise<ImportReport>
+) | null {
+  return useContext(FiveEToolsContext)
 }
