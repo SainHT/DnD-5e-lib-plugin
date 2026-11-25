@@ -84,6 +84,12 @@ export function DomainProviders({
   privateProviders?: (children: ReactNode) => ReactNode
   /** The SRD edition only; see `useSrdNotes`. */
   srdNotes?: SrdNotesHost
+  // Report of progress in regards to where in files the importer is
+  importFiveETools?: (
+    path: string,
+    category?: FiveEToolsCategory,
+    onProgress?: (progress: ImportProgress) => void,
+  ) => Promise<ImportReport>
   /**
    * Draws the note builders' page (MYDND-233), its host already around it. The
    * plugin's only: `HostProviders` passes it and the web build never does, so
@@ -91,14 +97,7 @@ export function DomainProviders({
    * render function rather than a component, so the page's own type is static
    * and a re-render never remounts the form.
    */
-  noteBuilder?: () => ReactNode
-                                 
-  // Report of progress in regards to where in files the importer is
-  importFiveETools?: (
-    path: string,
-    category?: FiveEToolsCategory,
-    onProgress?: (progress: ImportProgress) => void,
-  ) => Promise<ImportReport>
+  noteBuilder?: () => ReactNode                          
   children: ReactNode
 }) {
   // A new object per render would re-render every GM consumer on every render
@@ -135,17 +134,16 @@ export function DomainProviders({
                 not private, so every mount gets it, the harness included. */}
             <CatalogsProvider useMonsterEncounter={useMonsterEncounter} noteBuilders={noteBuilder !== undefined}>
               <SrdNotesContext.Provider value={srdNotes ?? null}>
-                <NoteBuilderContext.Provider value={noteBuilder ?? null}>
-                  <DdbConvertProvider
-                    fetchDdbPayload={ddbConvert?.fetchDdbPayload}
-                    convertDdbCharacter={ddbConvert?.convertDdbCharacter}
-                    createNotes={ddbConvert?.createNotes}
-                  >
-                    {privateProviders ? privateProviders(children) : children}
-                  </DdbConvertProvider>
-                </NoteBuilderContext.Provider>
                 <FiveEToolsContext.Provider value={importFiveETools ?? null}>
-                  {privateProviders ? privateProviders(children) : children}
+                  <NoteBuilderContext.Provider value={noteBuilder ?? null}>
+                    <DdbConvertProvider
+                      fetchDdbPayload={ddbConvert?.fetchDdbPayload}
+                      convertDdbCharacter={ddbConvert?.convertDdbCharacter}
+                      createNotes={ddbConvert?.createNotes}
+                    >
+                      {privateProviders ? privateProviders(children) : children}
+                    </DdbConvertProvider>
+                  </NoteBuilderContext.Provider>
                 </FiveEToolsContext.Provider>
               </SrdNotesContext.Provider>
             </CatalogsProvider>
