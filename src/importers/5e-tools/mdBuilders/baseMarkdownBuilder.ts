@@ -1,69 +1,55 @@
 /**
  * Shared primitives consumed by every entity Markdown builder.
  */
+import { bodyHash } from '../../../compendium'
+import { serialiseNote, toYaml } from '../../../platform'
 
-/**
- * Serializes a string as a YAML-safe scalar.
- * Returns the value unquoted when it is safe alphanumeric+punctuation,
- * otherwise returns a JSON-compatible quoted scalar.
- *
- * @param value String to serialize.
- * @returns Plain scalar or JSON-quoted scalar.
- */
-export function yamlScalar(value: string): string {
-  if (/^[A-Za-z0-9][A-Za-z0-9 .,'()+/-]*$/.test(value)) return value
-  return JSON.stringify(value)
-}
+export { toYaml }
 
-/**
- * Strict variant: always produces a JSON-quoted scalar.
- * Used by the monster builder which never emits bare scalars.
- *
- * @param value String to serialize.
- * @returns JSON-compatible quoted scalar.
- */
-export function yamlStrict(value: string): string {
-  return JSON.stringify(value)
-}
-
-/**
- * Builds the shared YAML frontmatter block common to every entity note.
- *
- * Tags and aliases are always emitted with 2-space indentation (`  - value`).
- *
- * @param options.title      Note title (run through yamlScalar or yamlStrict).
- * @param options.source     Canonical source label (run through yamlScalar or yamlStrict).
- * @param options.extra      Kind-specific lines inserted after `edition:`.
- * @param options.tags       Tag strings emitted as `  - tag`.
- * @param options.aliases    Alias strings emitted as `  - scalar(alias)`.
- * @param options.exportHash Pre-computed export hash value.
- * @param options.strictYaml Whether to quote scalars strictly with JSON.stringify.
- * @returns Lines from opening `---` to closing `---` (inclusive).
- */
-export function buildFrontmatter(options: {
+export interface EntityFrontmatterInput {
   title: string
   source: string
-  extra?: string[]
+  extra?: Record<string, unknown>
   tags: string[]
   aliases: string[]
-  exportHash: string
-  strictYaml?: boolean
-}): string[] {
-  const { title, source, extra = [], tags, aliases, exportHash, strictYaml = false } = options
-  const scalar = strictYaml ? yamlStrict : yamlScalar
-  return [
-    '---',
-    `title: ${scalar(title)}`,
-    `source: ${scalar(source)}`,
-    `edition: ${scalar(source)}`,
-    ...extra,
-    'tags:',
-    ...tags.map(tag => `  - ${tag}`),
-    'aliases:',
-    ...aliases.map(alias => `  - ${scalar(alias)}`),
-    `export_hash: ${exportHash}`,
-    '---',
-  ]
+}
+
+/**
+ * Builds the shared YAML frontmatter object common to every entity note.
+ *
+ * @param options Frontmatter fields.
+ * @returns Plain frontmatter mapping ready for `renderEntityNote`.
+ */
+export function buildFrontmatter(options: EntityFrontmatterInput): Record<string, unknown> {
+  const frontmatter: Record<string, unknown> = {
+    title: options.title,
+    source: options.source,
+    edition: options.source,
+  }
+  if (options.extra) {
+    for (const [key, value] of Object.entries(options.extra)) {
+      if (value !== undefined) frontmatter[key] = value
+    }
+  }
+  frontmatter.tags = options.tags
+  frontmatter.aliases = options.aliases
+  return frontmatter
+}
+
+/**
+ * Serializes a note's frontmatter and body using the repository's YAML writer,
+ * stamping `export_hash` from the exact body written after `---`.
+ *
+ * @param frontmatter Plain frontmatter mapping.
+ * @param body Markdown body excluding frontmatter.
+ * @returns Complete Markdown note ending with a newline.
+ */
+export async function renderEntityNote(frontmatter: Record<string, unknown>, body: string): Promise<string> {
+  const noteBody = `\n${body.trimEnd()}\n`
+  return serialiseNote({
+    frontmatter: { ...frontmatter, export_hash: await bodyHash(noteBody) },
+    body: noteBody,
+  })
 }
 
 /**

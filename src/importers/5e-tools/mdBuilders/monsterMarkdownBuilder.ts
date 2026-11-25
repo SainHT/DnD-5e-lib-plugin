@@ -1,8 +1,8 @@
 /**
  * Builds the exact frontmatter and statblock fence used by monster import notes.
  */
-import { yamlStrict as yaml, buildFrontmatter } from './baseMarkdownBuilder'
-import { exportHash, type MonsterEntry } from '../helpers//monsterHelpers'
+import { buildFrontmatter, renderEntityNote } from './baseMarkdownBuilder'
+import type { MonsterEntry } from '../helpers//monsterHelpers'
 
 /** Normalized fields consumed while assembling a monster Markdown note. */
 export interface MonsterMarkdownData {
@@ -46,32 +46,30 @@ export interface MonsterMarkdownData {
  * @param data Fully normalized monster fields.
  * @returns Complete Markdown ending in a newline.
  */
-export function buildMonsterMarkdown(data: MonsterMarkdownData): string {
+export async function buildMonsterMarkdown(data: MonsterMarkdownData): Promise<string> {
   const body = buildStatblock(data)
-  const crLine = /^\d+$/.test(data.cr) ? data.cr : yaml(data.cr)
+  const cr = /^\d+$/.test(data.cr) ? Number(data.cr) : data.cr
   const frontmatter = buildFrontmatter({
     title: data.name,
     source: data.source,
-    strictYaml: true,
-    extra: [
-      'statblock: inline',
-      `cr: ${crLine}`,
-      `xp: ${data.xp}`,
-      ...(typeof data.xpLair === 'number' ? [`xp_lair: ${data.xpLair}`] : []),
-      ...(data.type ? [`type: ${yaml(data.type)}`] : []),
-      ...(data.subtype ? [`subtype: ${yaml(data.subtype)}`] : []),
-      ...(data.size ? [`size: ${yaml(data.size)}`] : []),
-      ...(typeof data.ac === 'number' ? [`ac: ${data.ac}`] : []),
-      ...(typeof data.hp === 'number' ? [`hp: ${data.hp}`] : []),
-      ...(typeof data.speed === 'number' ? [`speed: ${data.speed}`] : []),
-      `legendary: ${data.legendary}`,
-      `spellcasting: ${data.spellcasting}`,
-    ],
+    extra: {
+      statblock: 'inline',
+      cr,
+      xp: data.xp,
+      ...(typeof data.xpLair === 'number' ? { xp_lair: data.xpLair } : {}),
+      ...(data.type ? { type: data.type } : {}),
+      ...(data.subtype ? { subtype: data.subtype } : {}),
+      ...(data.size ? { size: data.size } : {}),
+      ...(typeof data.ac === 'number' ? { ac: data.ac } : {}),
+      ...(typeof data.hp === 'number' ? { hp: data.hp } : {}),
+      ...(typeof data.speed === 'number' ? { speed: data.speed } : {}),
+      legendary: data.legendary,
+      spellcasting: data.spellcasting,
+    },
     tags: data.tags,
     aliases: [data.name],
-    exportHash: exportHash(body),
   })
-  return `${frontmatter.join('\n')}\n\n${body}\n`
+  return renderEntityNote(frontmatter, body)
 }
 
 /**
@@ -81,21 +79,22 @@ export function buildMonsterMarkdown(data: MonsterMarkdownData): string {
  * @returns Fenced YAML body.
  */
 function buildStatblock(data: MonsterMarkdownData): string {
+  const q = (value: string) => JSON.stringify(value)
   const lines = [
     '```statblock',
     'columns: 2',
     'forceColumns: true',
-    `name: ${yaml(data.name)}`,
-    `source: ${yaml(data.source)}`,
-    ...(data.size ? [`size: ${yaml(data.size)}`] : []),
-    ...(data.type ? [`type: ${yaml(data.type)}`] : []),
-    ...(data.subtype ? [`subtype: ${yaml(data.subtype)}`] : []),
-    ...(data.alignment ? [`alignment: ${yaml(data.alignment)}`] : []),
+    `name: ${q(data.name)}`,
+    `source: ${q(data.source)}`,
+    ...(data.size ? [`size: ${q(data.size)}`] : []),
+    ...(data.type ? [`type: ${q(data.type)}`] : []),
+    ...(data.subtype ? [`subtype: ${q(data.subtype)}`] : []),
+    ...(data.alignment ? [`alignment: ${q(data.alignment)}`] : []),
     ...(typeof data.ac === 'number' ? [`ac: ${data.ac}`] : []),
     ...(typeof data.hp === 'number' ? [`hp: ${data.hp}`] : []),
-    ...(data.hitDice ? [`hit_dice: ${yaml(data.hitDice)}`] : []),
-    ...(typeof data.speed === 'number' ? [`speed: ${yaml(`${data.speed} ft.`)}`] : []),
-    ...(data.initiative ? [`initiative: ${yaml(data.initiative)}`] : []),
+    ...(data.hitDice ? [`hit_dice: ${q(data.hitDice)}`] : []),
+    ...(typeof data.speed === 'number' ? [`speed: ${q(`${data.speed} ft.`)}`] : []),
+    ...(data.initiative ? [`initiative: ${q(data.initiative)}`] : []),
     `stats: [${data.stats.join(', ')}]`,
   ]
   if (data.saves.length) {
@@ -110,18 +109,18 @@ function buildStatblock(data: MonsterMarkdownData): string {
       for (const [name, value] of Object.entries(row)) lines.push(`  - ${name}: ${value}`)
     }
   }
-  if (data.gear) lines.push(`gear: ${yaml(data.gear)}`)
+  if (data.gear) lines.push(`gear: ${q(data.gear)}`)
   if (data.resistances) lines.push(`resistances: ${data.resistances}`)
   if (data.immunities) lines.push(`immunities: ${data.immunities}`)
   if (data.conditionImmunities) lines.push(`condition_immunities: ${data.conditionImmunities}`)
   if (data.senses) lines.push(`senses: ${data.senses}`)
   if (typeof data.passive === 'number') lines.push(`passive: ${data.passive}`)
   if (data.languages) lines.push(`languages: ${data.languages}`)
-  lines.push(`cr: ${yaml(data.cr)}`)
+  lines.push(`cr: ${q(data.cr)}`)
   appendEntries(lines, 'traits', data.traits)
   appendEntries(lines, 'actions', data.actions)
   appendEntries(lines, 'reactions', data.reactions)
-  if (data.legendaryDescription) lines.push(`legendary_description: ${yaml(data.legendaryDescription)}`)
+  if (data.legendaryDescription) lines.push(`legendary_description: ${q(data.legendaryDescription)}`)
   appendEntries(lines, 'legendary_actions', data.legendaryActions)
   lines.push('```')
   return lines.join('\n')
@@ -139,7 +138,7 @@ function appendEntries(lines: string[], key: string, entries: MonsterEntry[]): v
   if (entries.length === 0) return
   lines.push(`${key}:`)
   for (const entry of entries) {
-    lines.push(`  - name: ${yaml(entry.name)}`)
-    lines.push(`    desc: ${yaml(entry.desc)}`)
+    lines.push(`  - name: ${JSON.stringify(entry.name)}`)
+    lines.push(`    desc: ${JSON.stringify(entry.desc)}`)
   }
 }

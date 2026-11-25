@@ -1,36 +1,34 @@
 /**
  * Shared primitives and abstractions for all item subtype Markdown builders.
  */
-import { yamlScalar, buildFrontmatter, buildHeading } from './baseMarkdownBuilder'
+import { buildFrontmatter, buildHeading, renderEntityNote, toYaml } from './baseMarkdownBuilder'
 
-export { yamlScalar, buildHeading }
+export { buildHeading, toYaml }
 
 export interface ItemFrontmatterOptions {
   name: string
   source: string
   itemType: string
-  prefixExtra?: string[]
+  prefixExtra?: Record<string, unknown>
   costCp?: number | null
   weight?: number | null
-  extra?: string[]
+  extra?: Record<string, unknown>
   tags: string[]
   aliases?: string[]
-  exportHash: string
-  strictYaml?: boolean
 }
 
 /**
- * Builds frontmatter lines for an item note, automatically populating standard
- * item properties (item_type, prefixExtra, cost_cp, weight, extra, tags, aliases).
+ * Builds frontmatter object for an item note, automatically populating standard
+ * item properties (`item_type`, `prefixExtra`, `cost_cp`, `weight`, `extra`, `tags`, `aliases`).
  */
-export function buildItemFrontmatter(options: ItemFrontmatterOptions): string[] {
-  const commonExtra: string[] = [
-    `item_type: ${yamlScalar(options.itemType)}`,
-    ...(options.prefixExtra ?? []),
-    ...(typeof options.costCp === 'number' ? [`cost_cp: ${options.costCp}`] : []),
-    ...(typeof options.weight === 'number' ? [`weight: ${options.weight}`] : []),
-    ...(options.extra ?? []),
-  ]
+export function buildItemFrontmatter(options: ItemFrontmatterOptions): Record<string, unknown> {
+  const commonExtra: Record<string, unknown> = {
+    item_type: options.itemType,
+    ...options.prefixExtra,
+    ...(typeof options.costCp === 'number' ? { cost_cp: options.costCp } : {}),
+    ...(typeof options.weight === 'number' ? { weight: options.weight } : {}),
+    ...options.extra,
+  }
 
   return buildFrontmatter({
     title: options.name,
@@ -38,8 +36,6 @@ export function buildItemFrontmatter(options: ItemFrontmatterOptions): string[] 
     extra: commonExtra,
     tags: options.tags,
     aliases: options.aliases ?? [options.name],
-    exportHash: options.exportHash,
-    strictYaml: options.strictYaml,
   })
 }
 
@@ -52,6 +48,16 @@ export function buildVaultItemFence(lines: string[]): string[] {
   return ['```vault-item', ...lines, '```']
 }
 
+/**
+ * Wraps a structured vault-item object in a ```vault-item YAML fence.
+ * Returns an empty array when there are no defined fields.
+ */
+export function buildVaultItemYamlFence(data: Record<string, unknown>): string[] {
+  const entries = Object.entries(data).filter(([, value]) => value !== undefined)
+  if (entries.length === 0) return []
+  return ['```vault-item', toYaml(Object.fromEntries(entries)).trimEnd(), '```']
+}
+
 export interface ItemBodyOptions {
   name: string
   subtitle: string
@@ -60,6 +66,7 @@ export interface ItemBodyOptions {
   proseLines?: string[]
   customSections?: string[]
   vaultItemLines?: string[]
+  vaultItemData?: Record<string, unknown>
 }
 
 /**
@@ -81,7 +88,9 @@ export function buildItemBody(options: ItemBodyOptions): string {
   if (options.customSections && options.customSections.length > 0) {
     lines.push('', ...options.customSections)
   }
-  const vaultBlock = buildVaultItemFence(options.vaultItemLines ?? [])
+  const vaultBlock = options.vaultItemData
+    ? buildVaultItemYamlFence(options.vaultItemData)
+    : buildVaultItemFence(options.vaultItemLines ?? [])
   if (vaultBlock.length > 0) {
     lines.push('', ...vaultBlock)
   }
@@ -89,8 +98,8 @@ export function buildItemBody(options: ItemBodyOptions): string {
 }
 
 /**
- * Assembles frontmatter lines and body string into a complete Markdown note ending in newline.
+ * Assembles frontmatter object and body string into a complete Markdown note ending in newline.
  */
-export function assembleItemNote(frontmatter: string[], body: string): string {
-  return `${frontmatter.join('\n')}\n\n${body}\n`
+export function assembleItemNote(frontmatter: Record<string, unknown>, body: string): Promise<string> {
+  return renderEntityNote(frontmatter, body)
 }

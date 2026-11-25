@@ -1,8 +1,8 @@
 /**
  * Builds final Markdown for miscellaneous and fallback 5etools items.
  */
-import { buildItemFrontmatter, buildItemBody, assembleItemNote, yamlScalar } from '../itemMarkdownBuilder'
-import { otherItemExportHash, otherItemTags, type OtherItemMarkdownData } from '../../helpers/items/otherItemHelpers'
+import { buildItemFrontmatter, buildItemBody, assembleItemNote } from '../itemMarkdownBuilder'
+import { otherItemTags, type OtherItemMarkdownData } from '../../helpers/items/otherItemHelpers'
 
 /**
  * Assembles a complete fallback item Markdown note.
@@ -10,7 +10,7 @@ import { otherItemExportHash, otherItemTags, type OtherItemMarkdownData } from '
  * @param data Normalized fallback item values.
  * @returns Complete Markdown text ending with a newline.
  */
-export function buildOtherItemMarkdown(data: OtherItemMarkdownData): string {
+export async function buildOtherItemMarkdown(data: OtherItemMarkdownData): Promise<string> {
   const body = buildItemBody({
     name: data.name,
     subtitle: data.itemType,
@@ -28,12 +28,11 @@ export function buildOtherItemMarkdown(data: OtherItemMarkdownData): string {
       itemType: data.itemType,
       costCp: data.costCp,
       weight: data.weight,
-      extra: [
-        ...(data.carryingCapacity ? [`carrying_capacity: ${yamlScalar(data.carryingCapacity)}`] : []),
-        ...(data.speed ? [`speed: ${yamlScalar(data.speed)}`] : []),
-      ],
+      extra: {
+        ...(data.carryingCapacity ? { carrying_capacity: data.carryingCapacity } : {}),
+        ...(data.speed ? { speed: data.speed } : {}),
+      },
       tags: otherItemTags(data.itemType, data.source),
-      exportHash: otherItemExportHash(body),
     }),
     body,
   )

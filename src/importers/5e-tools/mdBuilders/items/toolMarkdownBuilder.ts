@@ -2,7 +2,7 @@
  * Builds final Markdown for normalized 5etools tools and instruments.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote } from '../itemMarkdownBuilder'
-import { toolExportHash, toolTags, type ToolMarkdownData } from '../../helpers/items/toolHelpers'
+import { toolTags, type ToolMarkdownData } from '../../helpers/items/toolHelpers'
 
 /**
  * Assembles a complete tool or instrument Markdown note.
@@ -10,7 +10,7 @@ import { toolExportHash, toolTags, type ToolMarkdownData } from '../../helpers/i
  * @param data Normalized tool values.
  * @returns Complete Markdown text ending with a newline.
  */
-export function buildToolMarkdown(data: ToolMarkdownData): string {
+export async function buildToolMarkdown(data: ToolMarkdownData): Promise<string> {
   const body = buildItemBody({
     name: data.name,
     subtitle: data.itemType,
@@ -33,7 +33,6 @@ export function buildToolMarkdown(data: ToolMarkdownData): string {
       costCp: data.costCp,
       weight: data.weight,
       tags: toolTags(data.itemType, data.source),
-      exportHash: toolExportHash(body),
     }),
     body,
   )

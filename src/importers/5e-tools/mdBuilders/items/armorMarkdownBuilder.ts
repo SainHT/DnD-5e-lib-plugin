@@ -2,7 +2,7 @@
  * Builds final Markdown for normalized 5etools shield and armor records.
  */
 import { buildItemFrontmatter, buildItemBody, assembleItemNote } from '../itemMarkdownBuilder'
-import { armorExportHash, armorTags, type ArmorMarkdownData } from '../../helpers/items/armorHelpers'
+import { armorTags, type ArmorMarkdownData } from '../../helpers/items/armorHelpers'
 
 /**
  * Assembles a complete armor or shield Markdown note.
@@ -10,7 +10,7 @@ import { armorExportHash, armorTags, type ArmorMarkdownData } from '../../helper
  * @param data Normalized armor or shield values.
  * @returns Complete Markdown text ending with a newline.
  */
-export function buildArmorMarkdown(data: ArmorMarkdownData): string {
+export async function buildArmorMarkdown(data: ArmorMarkdownData): Promise<string> {
   const body = buildItemBody({
     name: data.name,
     subtitle: data.itemType,
@@ -28,9 +28,8 @@ export function buildArmorMarkdown(data: ArmorMarkdownData): string {
       itemType: data.itemType,
       costCp: data.costCp,
       weight: data.weight,
-      extra: [...(data.ac !== null ? [`ac: ${data.ac}`] : [])],
+      extra: { ...(data.ac !== null ? { ac: data.ac } : {}) },
       tags: armorTags(data.itemType, data.source),
-      exportHash: armorExportHash(body),
     }),
     body,
   )

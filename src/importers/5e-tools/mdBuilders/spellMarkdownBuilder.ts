@@ -1,8 +1,7 @@
 /**
  * Builds the YAML frontmatter and readable body for an imported spell.
  */
-import { yamlStrict as yaml, buildFrontmatter, buildHeading } from './baseMarkdownBuilder'
-import { exportHash } from '../helpers/spellHelpers'
+import { buildFrontmatter, buildHeading, renderEntityNote } from './baseMarkdownBuilder'
 
 /**
  * Normalized values consumed by the spell Markdown builder.
@@ -48,7 +47,7 @@ export interface SpellMarkdownData {
  * @param data Normalized spell data.
  * @returns Markdown ending in a newline.
  */
-export function buildSpellMarkdown(data: SpellMarkdownData): string {
+export async function buildSpellMarkdown(data: SpellMarkdownData): Promise<string> {
   const body = buildBody(data)
   const tags = [
     'spell',
@@ -56,32 +55,29 @@ export function buildSpellMarkdown(data: SpellMarkdownData): string {
     `spell/${data.school.toLowerCase()}`,
     ...(data.ritual ? ['ritual'] : []),
   ]
-  return [
-    ...buildFrontmatter({
+  return renderEntityNote(
+    buildFrontmatter({
       title: data.name,
       source: data.source,
-      strictYaml: true,
-      extra: [
-        `level: ${data.level}`,
-        `school: ${yaml(data.school)}`,
-        `casting_time: ${yaml(data.castingTime)}`,
-        `range: ${yaml(data.range)}`,
-        `components: ${yaml(data.components)}`,
-        `duration: ${yaml(data.duration)}`,
-        `concentration: ${data.concentration}`,
-        `ritual: ${data.ritual}`,
-        ...(data.damageTypes.length ? ['damage_types:', ...data.damageTypes.map(type => `  - ${type}`)] : []),
-        ...(data.damageDice ? [`damage_dice: ${yaml(data.damageDice)}`] : []),
-        ...(data.cantripDice.length ? ['cantrip_dice:', ...data.cantripDice.map(dice => `  - ${yaml(dice)}`)] : []),
-        ...(data.classes.length ? ['classes:', ...data.classes.map(value => `  - ${yaml(value)}`)] : []),
-      ],
+      extra: {
+        level: data.level,
+        school: data.school,
+        casting_time: data.castingTime,
+        range: data.range,
+        components: data.components,
+        duration: data.duration,
+        concentration: data.concentration,
+        ritual: data.ritual,
+        ...(data.damageTypes.length ? { damage_types: data.damageTypes } : {}),
+        ...(data.damageDice ? { damage_dice: data.damageDice } : {}),
+        ...(data.cantripDice.length ? { cantrip_dice: data.cantripDice } : {}),
+        ...(data.classes.length ? { classes: data.classes } : {}),
+      },
       tags,
       aliases: [data.alias],
-      exportHash: exportHash(body),
     }),
     body,
-    '',
-  ].join('\n')
+  )
 }
 
 /**

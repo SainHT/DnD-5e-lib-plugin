@@ -6,7 +6,6 @@
  * metadata.
  */
 import {
-  magicItemExportHash,
   magicItemSpellTable,
   magicItemTags,
   type MagicItemMarkdownData,
@@ -16,8 +15,7 @@ import {
   assembleItemNote,
   buildHeading,
   buildItemFrontmatter,
-  buildVaultItemFence,
-  yamlScalar,
+  buildVaultItemYamlFence,
 } from '../itemMarkdownBuilder'
 
 /**
@@ -26,7 +24,7 @@ import {
  * @param data Normalized magic-item values.
  * @returns Complete Markdown text ending with a newline.
  */
-export function buildMagicItemMarkdown(data: MagicItemMarkdownData): string {
+export async function buildMagicItemMarkdown(data: MagicItemMarkdownData): Promise<string> {
   const body = buildMagicItemBody(data)
   return assembleItemNote(
     buildItemFrontmatter({
@@ -34,24 +32,23 @@ export function buildMagicItemMarkdown(data: MagicItemMarkdownData): string {
       source: data.source,
       itemType: data.itemType,
       weight: data.weight,
-      extra: [
-        `rarity: ${yamlScalar(data.rarity)}`,
-        `requires_attunement: ${data.requiresAttunement}`,
-        ...(data.attunementRestriction ? [`attunement_restriction: ${yamlScalar(data.attunementRestriction)}`] : []),
-        `cursed: ${data.cursed}`,
-        `wondrous: ${data.wondrous}`,
-        ...(data.charges !== null ? [`charges: ${data.charges}`] : []),
-        ...(data.recharge ? [`recharge: ${yamlScalar(data.recharge)}`] : []),
-        ...(data.rechargeAmount ? [`recharge_amount: "${yamlScalar(data.rechargeAmount)}"`] : []),
-        ...(data.bonusAc !== null ? [`bonus_ac: "+${data.bonusAc}"`] : []),
-        ...(data.bonusWeapon ? [`bonus_weapon: ${yamlScalar(data.bonusWeapon)}`] : []),
-        ...(data.bonusSavingThrow !== null ? [`bonus_saving_throw: "+${data.bonusSavingThrow}"`] : []),
-        ...(data.bonusSpellAttack !== null ? [`bonus_spell_attack: "+${data.bonusSpellAttack}"`] : []),
-        ...(data.summary ? [`summary: ${yamlScalar(data.summary)}`] : []),
-        ...(data.variants.length ? ['variants:', ...data.variants.map((variant: string) => `  - ${yamlScalar(variant)}`)] : []),
-      ],
+      extra: {
+        rarity: data.rarity,
+        requires_attunement: data.requiresAttunement,
+        ...(data.attunementRestriction ? { attunement_restriction: data.attunementRestriction } : {}),
+        cursed: data.cursed,
+        wondrous: data.wondrous,
+        ...(data.charges !== null ? { charges: data.charges } : {}),
+        ...(data.recharge ? { recharge: data.recharge } : {}),
+        ...(data.rechargeAmount ? { recharge_amount: data.rechargeAmount } : {}),
+        ...(data.bonusAc !== null ? { bonus_ac: `+${data.bonusAc}` } : {}),
+        ...(data.bonusWeapon ? { bonus_weapon: data.bonusWeapon } : {}),
+        ...(data.bonusSavingThrow !== null ? { bonus_saving_throw: `+${data.bonusSavingThrow}` } : {}),
+        ...(data.bonusSpellAttack !== null ? { bonus_spell_attack: `+${data.bonusSpellAttack}` } : {}),
+        ...(data.summary ? { summary: data.summary } : {}),
+        ...(data.variants.length ? { variants: data.variants } : {}),
+      },
       tags: magicItemTags(data),
-      exportHash: magicItemExportHash(body),
     }),
     body,
   )
@@ -80,8 +77,8 @@ function buildMagicItemBody(data: MagicItemMarkdownData): string {
     lines.push('', '### Variants', '', '| Variant |', '| --- |', ...data.variants.map((variant: string) => `| ${variant} |`))
   }
 
-  const vaultLines = buildVaultItemLines(data)
-  const vaultBlock = buildVaultItemFence(vaultLines)
+  const vaultData = buildVaultItemData(data)
+  const vaultBlock = buildVaultItemYamlFence(vaultData)
   if (vaultBlock.length) {
     lines.push('', ...vaultBlock)
   }
@@ -92,21 +89,21 @@ function buildMagicItemBody(data: MagicItemMarkdownData): string {
  * Builds structured `vault-item` fields for charges and combat bonuses.
  *
  * @param data Normalized magic-item values.
- * @returns Ordered vault-item YAML lines.
+ * @returns Ordered vault-item YAML mapping.
  */
-function buildVaultItemLines(data: MagicItemMarkdownData): string[] {
-  const lines: string[] = []
-  if (data.weight !== null) lines.push(`weight: ${data.weight}`)
-  if (data.charges !== null) lines.push(`charges: ${data.charges}`)
-  if (data.recharge) lines.push(`recharge: ${yamlScalar(data.recharge)}`)
-  if (data.rechargeAmount) lines.push(`recharge_amount: ${yamlScalar(data.rechargeAmount)}`)
-  if (data.bonusAc !== null) lines.push(`bonus_ac: ${data.bonusAc}`)
-  if (data.bonusWeapon) lines.push(`bonus_weapon: ${yamlScalar(data.bonusWeapon)}`)
-  if (data.bonusSavingThrow !== null) lines.push(`bonus_saving_throw: ${data.bonusSavingThrow}`)
-  if (data.bonusSpellAttack !== null) lines.push(`bonus_spell_attack: ${data.bonusSpellAttack}`)
-  if (data.requiresAttunement) lines.push(`requires_attunement: ${data.requiresAttunement}`)
-  if (data.attunementRestriction) lines.push(`attunement_restriction: ${yamlScalar(data.attunementRestriction)}`)
-  return lines
+function buildVaultItemData(data: MagicItemMarkdownData): Record<string, unknown> {
+  return {
+    ...(data.weight !== null ? { weight: data.weight } : {}),
+    ...(data.charges !== null ? { charges: data.charges } : {}),
+    ...(data.recharge ? { recharge: data.recharge } : {}),
+    ...(data.rechargeAmount ? { recharge_amount: data.rechargeAmount } : {}),
+    ...(data.bonusAc !== null ? { bonus_ac: data.bonusAc } : {}),
+    ...(data.bonusWeapon ? { bonus_weapon: data.bonusWeapon } : {}),
+    ...(data.bonusSavingThrow !== null ? { bonus_saving_throw: data.bonusSavingThrow } : {}),
+    ...(data.bonusSpellAttack !== null ? { bonus_spell_attack: data.bonusSpellAttack } : {}),
+    ...(data.requiresAttunement ? { requires_attunement: data.requiresAttunement } : {}),
+    ...(data.attunementRestriction ? { attunement_restriction: data.attunementRestriction } : {}),
+  }
 }
 
 
