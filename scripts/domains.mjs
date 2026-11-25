@@ -17,5 +17,7 @@ export const ORDER = [
   ['builder'],
   ['catalogs'],
   ['gm'],
+  ['homebrew'],
+  ['ddbConvert'],
   ['app'],
 ]
