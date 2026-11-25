@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { bodyHash } from '../../../../src/compendium'
-import { DEFAULT_NOTE_FOLDERS, parseNote } from '../../../../src/platform'
+import { bodyHash } from '../../../../compendium'
+import { DEFAULT_NOTE_FOLDERS, parseNote } from '../../../../platform'
 import {
   importMonsters,
   mapMonster,
   preprocessMonsterTags,
   type MonsterVault,
-} from '../../../../src/importers/5e-tools'
+} from '../../'
 
 const lich = {
   name: 'Lich',

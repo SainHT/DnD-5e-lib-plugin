@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findImportFiles, readImportFiles, type VaultAdapter } from '../../../src/importers/5e-tools/fileHandler'
+import { findImportFiles, readImportFiles, type VaultAdapter } from '../fileHandler'
 
 class FixtureAdapter implements VaultAdapter {
   constructor(private readonly files: Record<string, string>, private readonly folders: string[]) {}

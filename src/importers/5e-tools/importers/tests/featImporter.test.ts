@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_NOTE_FOLDERS } from '../../../src/platform'
-import { importFeats, type FeatVault } from '../../../src/importers/5e-tools/importers/featImporter'
+import { DEFAULT_NOTE_FOLDERS } from '../../../../platform'
+import { importFeats, type FeatVault } from '../featImporter'
 
 class FixtureVault implements FeatVault {
   readonly created: string[] = []

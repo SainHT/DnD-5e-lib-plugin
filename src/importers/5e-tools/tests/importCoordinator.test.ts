@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { FiveEToolsImportCoordinator, type ImportProgress } from '../../../src/importers/5e-tools'
-import type { VaultAdapter } from '../../../src/importers/5e-tools/fileHandler'
-import type { WritableVault } from '../../../src/importers/5e-tools/importers/entityImporter'
+import { FiveEToolsImportCoordinator, type ImportProgress } from '../importCoordinator'
+import type { VaultAdapter } from '../fileHandler'
+import type { WritableVault } from '../importers/entityImporter'
 
 class Adapter implements VaultAdapter {
   async exists(path: string): Promise<boolean> {

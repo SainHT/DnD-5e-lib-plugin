@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mapFeat } from '../../../../src/importers/5e-tools'
+import { mapFeat } from '../../'
 
 describe('feat mapper', () => {
   it('maps metadata, prerequisites, tags, and nested benefits', async () => {

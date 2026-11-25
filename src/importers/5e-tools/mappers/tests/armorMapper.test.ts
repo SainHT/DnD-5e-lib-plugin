@@ -7,7 +7,7 @@ import {
   mapArmor,
   mapItem,
   mapShield,
-} from '../../../../src/importers/5e-tools'
+} from '../../'  
 
 const shield = {
   name: 'Shield',

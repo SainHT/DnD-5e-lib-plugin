@@ -8,8 +8,8 @@ import {
   weaponDamageType,
   weaponProperties,
   weaponMastery
-} from '../../../../src/importers/5e-tools'
-import { DEFAULT_NOTE_FOLDERS } from '../../../../src/platform'
+} from '../../'
+import { DEFAULT_NOTE_FOLDERS } from '../../../../platform'
 
 const dagger = {
   name: 'Dagger',
