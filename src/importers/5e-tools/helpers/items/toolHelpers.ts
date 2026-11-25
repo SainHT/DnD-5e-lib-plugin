@@ -206,6 +206,6 @@ export function toolTags(itemType: string, source: string): string[] {
  * @param body Markdown body excluding frontmatter.
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
-export function toolExportHash(body: string): string {
+export function toolExportHash(body: string): Promise<string> {
   return itemExportHash(body)
 }

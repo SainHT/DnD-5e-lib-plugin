@@ -138,6 +138,6 @@ export function gearTags(itemType: string, source: string): string[] {
  * @param body Markdown body excluding frontmatter.
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
-export function gearExportHash(body: string): string {
+export function gearExportHash(body: string): Promise<string> {
   return itemExportHash(body)
 }

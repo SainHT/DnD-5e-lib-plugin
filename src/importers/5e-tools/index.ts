@@ -1,4 +1,4 @@
-import { resolveRuleFolder, type NoteFoldersSettings, type RuleFolderKey } from '../../platform'
+import { homebrewFolder, type NoteFoldersSettings, type RuleFolderKey } from '../../platform'
 
 /**
  * The 5etools entity kinds currently supported by the importer contract.
@@ -36,11 +36,10 @@ export const FIVEETOOLS_ENTITY_FOLDERS: Readonly<Record<FiveEToolsEntityKind, Ru
 }
 
 /**
- * Resolve the vault destination for a 5etools entity using the plugin's
- * configured Note folders, including per-kind overrides.
+ * Resolve the vault destination for a 5etools entity under `<homebrew>/5etools/<kind>`.
  */
 export function fiveEToolsFolderFor(kind: FiveEToolsEntityKind, folders: NoteFoldersSettings): string {
-  return resolveRuleFolder(FIVEETOOLS_ENTITY_FOLDERS[kind], folders)
+  return `${homebrewFolder(folders)}/5etools/${FIVEETOOLS_ENTITY_FOLDERS[kind]}`
 }
 
 // Coordinator & file handling

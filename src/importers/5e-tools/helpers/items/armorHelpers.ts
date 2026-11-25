@@ -108,7 +108,7 @@ export function armorTags(itemType: string, source: string): string[] {
  * @param body Markdown body excluding frontmatter.
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
-export function armorExportHash(body: string): string {
+export function armorExportHash(body: string): Promise<string> {
   return itemExportHash(body)
 }
 

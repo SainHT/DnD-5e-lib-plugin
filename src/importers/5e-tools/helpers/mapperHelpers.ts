@@ -1,7 +1,7 @@
 /**
  * Central mapper helpers and normalization utilities shared across all 5etools entity mappers.
  */
-import { sha256 } from './hash'
+import { bodyHash } from '../../../compendium'
 
 /** Canonical ability names mapped from standard 3-letter abbreviations. */
 export const ABILITY_NAMES: Readonly<Record<string, string>> = {
@@ -19,8 +19,8 @@ export const ABILITY_NAMES: Readonly<Record<string, string>> = {
  * @param body Note body to hash.
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
-export function exportHash(body: string): string {
-  return `sha256-${sha256(body).slice(0, 12)}`
+export function exportHash(body: string): Promise<string> {
+  return bodyHash(body)
 }
 
 /**

@@ -208,7 +208,7 @@ export function weaponNumber(value: unknown): number | null {
  * @param body Complete Markdown body excluding frontmatter.
  * @returns A SHA-256 fingerprint prefixed with `sha256-`.
  */
-export function exportHash(body: string): string {
+export function exportHash(body: string): Promise<string> {
   return itemExportHash(body)
 }
 

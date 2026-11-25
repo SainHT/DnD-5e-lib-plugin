@@ -494,7 +494,7 @@ export function magicItemIsCursed(record: Record<string, unknown>): boolean {
  * @param body Complete Markdown body excluding frontmatter.
  * @returns SHA-256 fingerprint prefixed with `sha256-`.
  */
-export function magicItemExportHash(body: string): string {
+export function magicItemExportHash(body: string): Promise<string> {
   return itemExportHash(body)
 }
 
