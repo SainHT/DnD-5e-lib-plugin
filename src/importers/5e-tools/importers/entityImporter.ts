@@ -33,7 +33,7 @@ export abstract class EntityImporter {
    * @param record Named 5etools record.
    * @returns Mapped note.
    */
-  protected abstract map(record: FiveEToolsRecord): MappedNote
+  protected abstract map(record: FiveEToolsRecord): Promise<MappedNote> | MappedNote
 
   /**
    * Resolves the destination folder for a mapped note.
@@ -71,7 +71,7 @@ export abstract class EntityImporter {
         onRecord?.(processed, records.length)
         continue
       }
-      const note = this.map(record)
+      const note = await this.map(record)
       const folder = this.folderFor(note)
       const path = `${folder}/${slugForNote(note.name)}.md`
       if (await this.vault.exists(path)) {

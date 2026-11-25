@@ -25,7 +25,7 @@ import {
  * @param record Raw named 5etools item record.
  * @returns Item kind, weapon name, and complete Markdown note.
  */
-export function mapWeapon(record: FiveEToolsRecord): MappedNote {
+export async function mapWeapon(record: FiveEToolsRecord): Promise<MappedNote> {
   const source = sourceForWeapon(record)
   const itemType = weaponTypeName(record.type)
   const weaponCategory = stringValue(record.weaponCategory)?.toLowerCase() ?? ''
@@ -48,6 +48,6 @@ export function mapWeapon(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'item',
     name: record.name,
-    markdown: buildWeaponMarkdown(data),
+    markdown: await buildWeaponMarkdown(data),
   }
 }

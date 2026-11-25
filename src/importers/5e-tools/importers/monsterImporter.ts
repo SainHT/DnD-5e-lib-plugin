@@ -15,7 +15,7 @@ export class MonsterImporter extends EntityImporter {
   protected readonly recordKeys = ['monster']
   protected readonly entityName = 'monster'
 
-  protected map(record: FiveEToolsRecord): MappedNote {
+  protected map(record: FiveEToolsRecord): Promise<MappedNote> {
     return mapMonster(record)
   }
 

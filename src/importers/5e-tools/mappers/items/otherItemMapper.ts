@@ -20,7 +20,7 @@ import {
  * @param record Raw named 5etools miscellaneous item record.
  * @returns A mapped mundane item note.
  */
-export function mapOtherItem(record: FiveEToolsRecord): MappedNote {
+export async function mapOtherItem(record: FiveEToolsRecord): Promise<MappedNote> {
   const data: OtherItemMarkdownData = {
     name: typeof record.name === 'string' ? record.name : 'Unnamed Item',
     source: sourceForOtherItem(record),
@@ -34,6 +34,6 @@ export function mapOtherItem(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'item',
     name: data.name,
-    markdown: buildOtherItemMarkdown(data),
+    markdown: await buildOtherItemMarkdown(data),
   }
 }

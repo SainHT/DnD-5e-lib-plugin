@@ -14,7 +14,7 @@ export class SpellImporter extends EntityImporter {
   protected readonly recordKeys = ['spell']
   protected readonly entityName = 'spell'
 
-  protected map(record: FiveEToolsRecord): MappedNote {
+  protected map(record: FiveEToolsRecord): Promise<MappedNote> {
     return mapSpell(record)
   }
 

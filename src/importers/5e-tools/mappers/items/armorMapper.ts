@@ -23,7 +23,7 @@ import {
  * @param record Raw named 5etools armor or shield record.
  * @returns Standard mapped-note data for the items pipeline.
  */
-export function mapArmorItem(record: FiveEToolsRecord): MappedNote {
+export function mapArmorItem(record: FiveEToolsRecord): Promise<MappedNote> {
   if (isShield(record)) return mapShield(record)
   return mapArmor(record)
 }
@@ -34,7 +34,7 @@ export function mapArmorItem(record: FiveEToolsRecord): MappedNote {
  * @param record Raw named 5etools armor or shield record.
  * @returns Standard mapped-note data for the items pipeline.
  */
-export function mapArmorOrShield(record: FiveEToolsRecord): MappedNote {
+export function mapArmorOrShield(record: FiveEToolsRecord): Promise<MappedNote> {
   return mapArmorItem(record)
 }
 
@@ -44,7 +44,7 @@ export function mapArmorOrShield(record: FiveEToolsRecord): MappedNote {
  * @param record Raw named 5etools shield record.
  * @returns Standard mapped-note data for the items pipeline.
  */
-export function mapShield(record: FiveEToolsRecord): MappedNote {
+export async function mapShield(record: FiveEToolsRecord): Promise<MappedNote> {
   const data: ArmorMarkdownData = {
     name: armorName(record),
     source: sourceForArmor(record),
@@ -56,7 +56,7 @@ export function mapShield(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'item',
     name: data.name,
-    markdown: buildArmorMarkdown(data),
+    markdown: await buildArmorMarkdown(data),
   }
 }
 
@@ -66,7 +66,7 @@ export function mapShield(record: FiveEToolsRecord): MappedNote {
  * @param record Raw named 5etools body-armor record.
  * @returns Standard mapped-note data for the items pipeline.
  */
-export function mapArmor(record: FiveEToolsRecord): MappedNote {
+export async function mapArmor(record: FiveEToolsRecord): Promise<MappedNote> {
   const data: ArmorMarkdownData = {
     name: armorName(record),
     source: sourceForArmor(record),
@@ -78,6 +78,6 @@ export function mapArmor(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'item',
     name: data.name,
-    markdown: buildArmorMarkdown(data),
+    markdown: await buildArmorMarkdown(data),
   }
 }

@@ -28,7 +28,7 @@ import {
  * @param record Raw named 5etools magic-item record.
  * @returns A mapped magic-item note.
  */
-export function mapMagicItem(record: FiveEToolsRecord): MappedNote {
+export async function mapMagicItem(record: FiveEToolsRecord): Promise<MappedNote> {
   const attunement = magicItemAttunement(record)
   const metrics = magicItemMetrics(record)
   const data: MagicItemMarkdownData = {
@@ -57,6 +57,6 @@ export function mapMagicItem(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'magicItem',
     name: data.name,
-    markdown: buildMagicItemMarkdown(data),
+    markdown: await buildMagicItemMarkdown(data),
   }
 }

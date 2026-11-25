@@ -22,7 +22,7 @@ import {
  * @param record Raw named feat data from a 5etools JSON file.
  * @returns The feat name, entity kind, and fully rendered Markdown note.
  */
-export function mapFeat(record: FiveEToolsRecord): MappedNote {
+export async function mapFeat(record: FiveEToolsRecord): Promise<MappedNote> {
   const source = sourceForRecord(record)
   const kind = featKind(record.category)
   const prerequisite = prerequisiteText(record.prerequisite)
@@ -32,7 +32,7 @@ export function mapFeat(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'feat',
     name: record.name,
-    markdown: buildFeatMarkdown({
+    markdown: await buildFeatMarkdown({
       name: record.name,
       source,
       kind,

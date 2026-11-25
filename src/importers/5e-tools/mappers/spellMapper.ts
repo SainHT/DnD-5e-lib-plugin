@@ -29,7 +29,7 @@ import {
  * @param record Raw named spell data from a 5etools JSON file.
  * @returns The spell name, entity kind, and complete Markdown note.
  */
-export function mapSpell(record: FiveEToolsRecord): MappedNote {
+export async function mapSpell(record: FiveEToolsRecord): Promise<MappedNote> {
   const name = titleForRecord(record)
   const source = sourceForRecord(record)
   const data: SpellMarkdownData = {
@@ -50,7 +50,7 @@ export function mapSpell(record: FiveEToolsRecord): MappedNote {
     classes: classesFromRecord(record.classes),
     body: textFromEntries(record.entriesHigherLevel, record.entries),
   }
-  const body = buildSpellMarkdown(data)
+  const body = await buildSpellMarkdown(data)
   return { kind: 'spell', name, markdown: body }
 }
 

@@ -15,7 +15,7 @@ export class FeatImporter extends EntityImporter {
   protected readonly recordKeys = ['feat']
   protected readonly entityName = 'feat'
 
-  protected map(record: FiveEToolsRecord): MappedNote {
+  protected map(record: FiveEToolsRecord): Promise<MappedNote> {
     return mapFeat(record)
   }
 

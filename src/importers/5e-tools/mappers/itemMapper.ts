@@ -49,7 +49,7 @@ const TREASURE_TYPE_CODES: ReadonlySet<string> = new Set(['TB', 'TG', 'TA', 'TC'
  * @param record Raw named 5etools item record.
  * @returns A mapped mundane item or magic item note.
  */
-export function mapItem(record: FiveEToolsRecord): MappedNote {
+export async function mapItem(record: FiveEToolsRecord): Promise<MappedNote> {
   if (isMagicItem(record)) return mapMagicItem(record)
   switch (itemKind(record)) {
     case 'Weapons':
@@ -72,7 +72,7 @@ export function mapItem(record: FiveEToolsRecord): MappedNote {
  * @param record Raw magic-item record.
  * @returns A mapped magic-item note.
  */
-export function mapMagicItem(record: FiveEToolsRecord): MappedNote {
+export function mapMagicItem(record: FiveEToolsRecord): Promise<MappedNote> {
   return mapMagicItemRecord(record)
 }
 

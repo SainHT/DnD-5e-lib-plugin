@@ -21,7 +21,7 @@ import {
  * @param record Raw named 5etools tool record.
  * @returns Tool kind, name, and complete Markdown note.
  */
-export function mapTool(record: FiveEToolsRecord): MappedNote {
+export async function mapTool(record: FiveEToolsRecord): Promise<MappedNote> {
   const details = parseToolEntries(record.entries)
   const data: ToolMarkdownData = {
     name: typeof record.name === 'string' ? record.name : 'Unnamed Tool',
@@ -36,6 +36,6 @@ export function mapTool(record: FiveEToolsRecord): MappedNote {
   return {
     kind: 'item',
     name: data.name,
-    markdown: buildToolMarkdown(data),
+    markdown: await buildToolMarkdown(data),
   }
 }

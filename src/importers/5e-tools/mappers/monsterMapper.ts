@@ -32,7 +32,7 @@ import {
  * @param record Raw named monster data from a 5etools JSON file.
  * @returns The monster name, entity kind, and generated Markdown.
  */
-export function mapMonster(record: FiveEToolsRecord): MappedNote {
+export async function mapMonster(record: FiveEToolsRecord): Promise<MappedNote> {
   const name = record.name
   const source = sourceForMonster(record)
   const cr = challengeRating(record.cr)
@@ -96,7 +96,7 @@ export function mapMonster(record: FiveEToolsRecord): MappedNote {
     spellcasting,
     tags,
   }
-  return { kind: 'monster', name, markdown: buildMonsterMarkdown(data) }
+  return { kind: 'monster', name, markdown: await buildMonsterMarkdown(data) }
 }
 
 /**
