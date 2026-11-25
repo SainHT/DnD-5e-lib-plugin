@@ -443,11 +443,8 @@ function DdbSection({ narrow }: { narrow: boolean }) {
 
 // --- 5e Tools Importer ------------------------------------------------------
 /**
- * Imported entities will use the existing `Note folders` settings rather than
- * adding a second set of importer destinations. The importer domain resolves
- * each 5etools entity kind through the same per-kind override and rules-root
- * logic used by the catalogs, so changing those settings changes where future
- * imports are written.
+ * Imported entities are written under `<homebrew>/5etools/<kind>` so they
+ * never land inside the bundled SRD 5.2.1 folder.
  */
 function FiveEToolsSection({ narrow }: { narrow: boolean }) {
   const importer = useFiveEToolsImport()
@@ -474,12 +471,12 @@ function FiveEToolsSection({ narrow }: { narrow: boolean }) {
   }
 
   return (
-    <Section id="import" title="5etools Import" file="Note folders" narrow={narrow}>
+    <Section id="import" title="5etools Import" file="Homebrew/5etools/<kind>" narrow={narrow}>
       <div className="bst-st-pointer">
-        <strong>Use the existing Note folders</strong>
+        <strong>Saved to Homebrew/5etools/&lt;kind&gt;</strong>
         <span className="bst-note">
-          Imported spells, monsters, items and other rules data will use the paths configured in Obsidian&rsquo;s Note
-          folders settings, including per-kind folder overrides.
+          Imported spells, monsters, items and other rules data are written under your Homebrew folder
+          (<code>Homebrew/5etools/&lt;kind&gt;</code>), keeping them separate from the SRD 5.2.1 folder.
         </span>
       </div>
       {error && <Problem>{error}</Problem>}
