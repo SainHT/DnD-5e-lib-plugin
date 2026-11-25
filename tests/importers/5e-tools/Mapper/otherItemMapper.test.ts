@@ -47,14 +47,14 @@ describe('other item fallback mapper', () => {
     const markdown = mapOtherItem(camel).markdown
 
     expect(markdown).toContain('title: Camel')
-    expect(markdown).toContain('source: SRD 5.2.1')
-    expect(markdown).toContain('edition: SRD 5.2.1')
+    expect(markdown).toContain('source: XPHB')
+    expect(markdown).toContain('edition: XPHB')
     expect(markdown).toContain('item_type: Mount')
     expect(markdown).toContain('cost_cp: 5000')
     expect(markdown).toContain('carrying_capacity: 450 lb.')
     expect(markdown).toContain('speed: 50 ft.')
     expect(markdown).toContain('  - item/mount')
-    expect(markdown).toContain('*Mount | Source: SRD 5.2.1*')
+    expect(markdown).toContain('*Mount | Source: XPHB*')
     expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
   })
 
@@ -65,7 +65,7 @@ describe('other item fallback mapper', () => {
     expect(markdown).toContain('item_type: Tack and Harness')
     expect(markdown).toContain('cost_cp: 5')
     expect(markdown).toContain('  - item/tack-and-harness')
-    expect(markdown).toContain('*Tack and Harness | Source: SRD 5.2.1*')
+    expect(markdown).toContain('*Tack and Harness | Source: XPHB*')
   })
 
   it('handles unknown types and generic nested entries', () => {
@@ -98,7 +98,13 @@ describe('other item fallback mapper', () => {
     const vault: ItemVault = {
       exists: async () => false,
       list: async () => ({ files: [], folders: [] }),
-      read: async () => JSON.stringify({ item: [camel, stabling, generic] }),
+      read: async () => JSON.stringify({
+        item: [
+          { ...camel, srd52: undefined },
+          { ...stabling, srd52: undefined },
+          { ...generic, srd52: undefined },
+        ],
+      }),
       create: async path => {
         created.push(path)
       },

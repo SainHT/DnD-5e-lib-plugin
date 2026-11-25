@@ -58,7 +58,7 @@ export function mapMonster(record: FiveEToolsRecord): MappedNote {
     ...(typeData.type ? [typeData.type] : []),
     ...(typeData.subtype ? [typeData.subtype] : []),
     crTag,
-    ...(source === 'SRD 5.2.1' ? ['srd-5-2-1'] : [slugTag(source)].filter(Boolean)),
+    ...[slugTag(source)].filter(Boolean),
   ]
   const data: MonsterMarkdownData = {
     name,

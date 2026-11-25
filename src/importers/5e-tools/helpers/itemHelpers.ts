@@ -10,11 +10,10 @@ import {
   firstString,
   slug,
   sourceForRecord,
-  SRD_SOURCE,
   stringValue,
 } from './mapperHelpers'
 
-export { SRD_SOURCE, firstNumber, stringValue, firstString }
+export { firstNumber, stringValue, firstString }
 
 export const itemSource = sourceForRecord
 export const itemExportHash = exportHash
@@ -92,10 +91,8 @@ export function itemWeight(record: Record<string, unknown>): number | null {
  * @param source Canonical display source.
  * @returns Ordered frontmatter tags.
  */
-export function itemTags(itemType: string, source: string): string[] {
-  const tags = ['item', `item/${itemSlug(itemType)}`]
-  if (source === SRD_SOURCE) tags.push('srd-5-2-1')
-  return tags
+export function itemTags(itemType: string, _source: string): string[] {
+  return ['item', `item/${itemSlug(itemType)}`]
 }
 
 /**

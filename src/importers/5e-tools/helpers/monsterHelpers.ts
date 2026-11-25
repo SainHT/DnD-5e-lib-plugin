@@ -7,6 +7,7 @@
 import {
   abilityName,
   exportHash,
+  replaceFiveEToolsLinks,
   slug,
   sourceForRecord,
   titleCase,
@@ -232,7 +233,7 @@ export function gearText(value: unknown): string {
 
 /** Converts 5etools inline tags into clean Markdown or plain text. */
 export function preprocessMonsterTags(value: string): string {
-  return value
+  return replaceFiveEToolsLinks(value)
     .replace(/\{@atkr\s+(m,r|r,m)\}/gi, '*Melee Attack Roll or Ranged Attack Roll:*')
     .replace(/\{@atkr\s+m\}/gi, '*Melee Attack Roll:*')
     .replace(/\{@atkr\s+r\}/gi, '*Ranged Attack Roll:*')
@@ -244,10 +245,6 @@ export function preprocessMonsterTags(value: string): string {
     .replace(/\{@h\}/gi, '*Hit:* ')
     .replace(/\{@damage\s+([^}]+)\}/gi, '$1')
     .replace(/\{@dice\s+([^}]+)\}/gi, '$1')
-    .replace(/\{@condition\s+([^|}]+)(?:\|[^}]+)?\}/gi, '[[$1]]')
-    .replace(/\{@spell\s+([^|}]+)(?:\|[^}]+)?\}/gi, '[[$1]]')
-    .replace(/\{@variantrule\s+([^|}]+)\|[^|}]+\|([^}]+)\}/gi, '$2')
-    .replace(/\{@variantrule\s+([^|}]+)\|[^}]+\}/gi, (_match, name: string) => name.trim())
     .replace(/\{@actSave\s+([^}]+)\}/gi, (_match, ability: string) => `*${abilityName(ability)} Saving Throw:*`)
     .replace(/\{@dc\s+([+-]?\d+)\}/gi, 'DC $1')
     .replace(/\{@actSaveFail\}/gi, '*Failure:*')
@@ -255,7 +252,7 @@ export function preprocessMonsterTags(value: string): string {
     .replace(/\{@actSaveSuccess\}/gi, '*Success:*')
     .replace(/\{@b\s+([^}]+)\}/gi, '**$1**')
     .replace(/\{@i\s+([^}]+)\}/gi, '*$1*')
-    .replace(/\{@(?:item|creature|class|skill)\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
+    .replace(/\{@(?:class|skill)\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
     .replace(/\s+/g, ' ')
     .replace(/:\s+\./g, ':.')
     .trim()
@@ -356,9 +353,6 @@ function formatSpellcasting(entry: Record<string, unknown>): string {
 function formatSpellList(value: unknown[]): string {
   return value
     .filter((item): item is string => typeof item === 'string')
-    .map(item => {
-      const match = item.match(/\{@spell\s+([^|}]+)(?:\|[^}]+)?\}/i)
-      return match ? `[[${match[1]}]]` : preprocessMonsterTags(item)
-    })
+    .map(item => preprocessMonsterTags(item))
     .join(', ')
 }

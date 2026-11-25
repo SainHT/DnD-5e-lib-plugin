@@ -39,12 +39,12 @@ describe('tool mapper', () => {
     const markdown = mapItem(alchemistSupplies).markdown
 
     expect(markdown).toContain("title: Alchemist's Supplies")
-    expect(markdown).toContain('source: SRD 5.2.1')
+    expect(markdown).toContain('source: XPHB')
     expect(markdown).toContain("item_type: Artisan's Tools")
     expect(markdown).toContain('cost_cp: 5000')
     expect(markdown).toContain('weight: 8')
     expect(markdown).toContain('  - item/artisans-tools')
-    expect(markdown).toContain('  - srd-5-2-1')
+    expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('- Ability: Intelligence')
     expect(markdown).toContain('- Utilize: Identify a substance (DC 15), or start a fire (DC 15)')
     expect(markdown).toContain("- Craft: Acid, Alchemist's Fire, Component Pouch, Oil, Paper, Perfume")
@@ -75,7 +75,7 @@ describe('tool mapper', () => {
     const vault: ItemVault = {
       exists: async () => false,
       list: async () => ({ files: [], folders: [] }),
-      read: async () => JSON.stringify({ item: [alchemistSupplies] }),
+      read: async () => JSON.stringify({ item: [{ ...alchemistSupplies, srd52: undefined }] }),
       create: async path => {
         created.push(path)
       },

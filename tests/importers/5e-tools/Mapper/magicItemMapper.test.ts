@@ -90,13 +90,17 @@ describe('magic item mapper', () => {
     const markdown = mapItem(bagOfHolding).markdown
     expect(mapItem(bagOfHolding).kind).toBe('magicItem')
     expect(markdown).toContain('title: Bag of Holding')
-    expect(markdown).toContain('source: SRD 5.2.1')
+    expect(markdown).toContain('source: XDMG')
     expect(markdown).toContain('item_type: Wondrous Item')
     expect(markdown).toContain('rarity: uncommon')
     expect(markdown).toContain('requires_attunement: false')
     expect(markdown).toContain('wondrous: true')
     expect(markdown).toContain('weight: 15')
-    expect(markdown).toContain('*Uncommon | Source: SRD 5.2.1*')
+    expect(markdown).toContain('  - magic-item')
+    expect(markdown).not.toContain('  - item\n')
+    expect(markdown).not.toContain('item/magic')
+    expect(markdown).not.toContain('srd-5-2-1')
+    expect(markdown).toContain('*Uncommon | Source: XDMG*')
     expect(markdown).toContain('This bag has an extradimensional space.')
     expect(markdown).toContain('```vault-item\nweight: 15\n```')
     expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
@@ -138,12 +142,17 @@ describe('magic item mapper', () => {
     const vault: ItemVault = {
       exists: async () => false,
       list: async () => ({ files: [], folders: [] }),
-      read: async () => JSON.stringify({ item: [bagOfHolding] }),
+      read: async () => JSON.stringify({
+        item: [
+          { ...bagOfHolding, srd52: undefined },
+          { ...bagOfHolding, name: 'Skipped SRD Item', srd52: true },
+        ],
+      }),
       create: async path => {
         created.push(path)
       },
     }
-    await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 0 })
+    await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 1 })
     expect(created).toEqual(['SRD 5.2.1/magic-items/bag-of-holding.md'])
   })
 

@@ -3,12 +3,7 @@
  */
 import { sha256 } from './hash'
 
-/** Canonical source label for SRD and 2024 basic-rules records. */
-export const SRD_SOURCE = 'SRD 5.2.1'
-
-/**
- * Standard ability names mapped from standard 3-letter abbreviations.
- */
+/** Canonical ability names mapped from standard 3-letter abbreviations. */
 export const ABILITY_NAMES: Readonly<Record<string, string>> = {
   str: 'Strength',
   dex: 'Dexterity',
@@ -30,16 +25,12 @@ export function exportHash(body: string): string {
 
 /**
  * Resolves the canonical source label for a 5etools record.
- * Handles `srd52` (boolean or string title), `basicRules2024`, and raw source.
  *
  * @param record Raw 5etools record.
- * @returns `SRD 5.2.1` when marked as SRD or basic rules, otherwise trimmed source or 'Unknown'.
+ * @returns Trimmed source or `'unknown'`.
  */
 export function sourceForRecord(record: Record<string, unknown>): string {
-  if (record.srd52 === true || record.basicRules2024 === true || typeof record.srd52 === 'string') {
-    return SRD_SOURCE
-  }
-  return stringValue(record.source) ?? 'Unknown'
+  return stringValue(record.source) ?? 'unknown'
 }
 
 /**
@@ -110,6 +101,65 @@ export function titleCase(value: string): string {
     .split(/\s+/)
     .map(word => word ? `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}` : '')
     .join(' ')
+}
+
+const LINK_TAG_FOLDERS: Readonly<Record<string, string>> = {
+  spell: 'spells',
+  condition: 'conditions',
+  creature: 'bestiary',
+  feat: 'feats',
+  variantrule: 'variant-rules',
+}
+
+/**
+ * Generates a URL and filename safe slug for a note.
+ *
+ * @param name Note title or record name.
+ * @returns Sluggified string safe for vault note filenames.
+ */
+export function slugForNote(name: string): string {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'unnamed'
+  )
+}
+
+/**
+ * Formats a 5etools reference tag body (`<name>[|<source>[|<display>]]`)
+ * as an Obsidian wiki link or plain text for unsupported tags.
+ *
+ * @param tag Tag name without the `@` prefix (e.g. `spell`, `condition`, `item`).
+ * @param content Raw tag body after the tag name.
+ * @returns Formatted wiki link or plain-text label.
+ */
+export function fiveEToolsTagLink(tag: string, content: string): string {
+  const segments = content.split('|')
+  const baseName = segments[0]?.trim() ?? ''
+  if (!baseName) return ''
+  const label = segments[2]?.trim() || baseName
+  const key = tag.trim().toLowerCase()
+  const fileSlug = slugForNote(baseName)
+  if (key === 'item') return `[[${fileSlug}|${label}]]`
+  const folder = LINK_TAG_FOLDERS[key]
+  return folder ? `[[${folder}/${fileSlug}|${label}]]` : label
+}
+
+/**
+ * Replaces 5etools reference tags (`{@spell ...}`, `{@condition ...}`, etc.)
+ * with Obsidian wiki links, keeping the original or display text as the label.
+ *
+ * @param value Raw 5etools prose.
+ * @returns Text with supported reference tags converted to wiki links.
+ */
+export function replaceFiveEToolsLinks(value: string): string {
+  return value.replace(
+    /\{@(spell|condition|creature|feat|variantrule|item)\s+([^}]+)\}/gi,
+    (_match, tag: string, content: string) => fiveEToolsTagLink(tag, content),
+  )
 }
 
 /**

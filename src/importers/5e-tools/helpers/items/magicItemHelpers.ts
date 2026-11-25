@@ -5,7 +5,7 @@
  * inline-tag cleanup, structured attunement parsing, spell/charge extraction,
  * table normalization, and stable export metadata.
  */
-import { firstNumber, itemExportHash, itemSlug, itemSource, itemTypeCode, itemWeight, SRD_SOURCE, stringValue } from '../itemHelpers'
+import { firstNumber, itemExportHash, itemSlug, itemSource, itemTypeCode, itemWeight, stringValue } from '../itemHelpers'
 
 /** A single 5etools table row normalized for Markdown rendering. */
 export interface MagicItemTableRow {
@@ -472,10 +472,9 @@ export function magicItemVariants(record: Record<string, unknown>): string[] {
  * @returns Ordered tag list.
  */
 export function magicItemTags(data: MagicItemMarkdownData): string[] {
-  const tags = ['item', 'item/magic', `item/${itemSlug(data.itemType)}`, `rarity/${itemSlug(data.rarity)}`]
+  const tags = ['magic-item', `item/${itemSlug(data.itemType)}`, `rarity/${itemSlug(data.rarity)}`]
   if (data.requiresAttunement) tags.push('attunement')
   if (data.cursed) tags.push('cursed')
-  if (data.source === SRD_SOURCE) tags.push('srd-5-2-1')
   return tags
 }
 

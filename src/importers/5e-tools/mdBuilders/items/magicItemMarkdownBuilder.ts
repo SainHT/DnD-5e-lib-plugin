@@ -44,7 +44,7 @@ export function buildMagicItemMarkdown(data: MagicItemMarkdownData): string {
         ...(data.recharge ? [`recharge: ${yamlScalar(data.recharge)}`] : []),
         ...(data.rechargeAmount ? [`recharge_amount: "${yamlScalar(data.rechargeAmount)}"`] : []),
         ...(data.bonusAc !== null ? [`bonus_ac: "+${data.bonusAc}"`] : []),
-        ...(data.bonusWeapon ? [`bonus_weapon: "${yamlScalar(data.bonusWeapon)}"`] : []),
+        ...(data.bonusWeapon ? [`bonus_weapon: ${yamlScalar(data.bonusWeapon)}`] : []),
         ...(data.bonusSavingThrow !== null ? [`bonus_saving_throw: "+${data.bonusSavingThrow}"`] : []),
         ...(data.bonusSpellAttack !== null ? [`bonus_spell_attack: "+${data.bonusSpellAttack}"`] : []),
         ...(data.summary ? [`summary: ${yamlScalar(data.summary)}`] : []),

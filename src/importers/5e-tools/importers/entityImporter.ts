@@ -1,6 +1,9 @@
 import type { NoteFoldersSettings } from '../../../platform'
 import type { VaultAdapter } from '../fileHandler'
+import { slugForNote } from '../helpers/mapperHelpers'
 import type { FiveEToolsRecord, MappedNote } from '../types'
+
+export { slugForNote }
 
 
 export interface WritableVault extends VaultAdapter {
@@ -62,7 +65,7 @@ export abstract class EntityImporter {
     let skipped = 0
     let processed = 0
     for (const record of records) {
-      if (this.shouldSkip(record)) {
+      if (isSrd52Record(record) || this.shouldSkip(record)) {
         skipped += 1
         processed += 1
         onRecord?.(processed, records.length)
@@ -142,18 +145,13 @@ function isCurrentRecord(record: unknown): boolean {
 }
 
 /**
- * Generates a URL and filename safe slug for a note.
+ * Checks whether a record belongs to SRD 5.2.1 (already bundled by the plugin).
  *
- * @param name Note title or record name.
- * @returns Sluggified string safe for vault note filenames.
+ * @param record Candidate 5etools record.
+ * @returns True when `srd52` is set on the record or `source` is `srd52`.
  */
-export function slugForNote(name: string): string {
-  return (
-    name
-      .trim()
-      .toLowerCase()
-      .replace(/['’]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'unnamed'
-  )
+function isSrd52Record(record: FiveEToolsRecord): boolean {
+  if (record.srd52 === true) return true
+  if (typeof record.srd52 === 'string' && record.srd52.trim().length > 0) return true
+  return typeof record.source === 'string' && record.source.trim().toLowerCase() === 'srd52'
 }

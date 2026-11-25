@@ -32,7 +32,8 @@ describe('spell mapper', () => {
     const markdown = mapSpell(acidArrow).markdown
 
     expect(markdown).toContain('title: "Acid Arrow"')
-    expect(markdown).toContain('source: "SRD 5.2.1"')
+    expect(markdown).toContain('source: "XPHB"')
+    expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('school: "Evocation"')
     expect(markdown).toContain('range: "90 feet"')
     expect(markdown).toContain('components: "V, S, M (powdered rhubarb leaf)"')

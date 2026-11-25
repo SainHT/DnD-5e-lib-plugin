@@ -69,7 +69,8 @@ describe('monster mapper', () => {
     const markdown = mapMonster(lich).markdown
 
     expect(markdown).toContain('title: "Lich"')
-    expect(markdown).toContain('source: "SRD 5.2.1"')
+    expect(markdown).toContain('source: "XMM"')
+    expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('cr: 21')
     expect(markdown).toContain('xp: 33000')
     expect(markdown).toContain('xp_lair: 41000')
@@ -92,13 +93,13 @@ describe('monster mapper', () => {
     expect(markdown).toContain('*Hit:*')
     expect(markdown).toContain('1d10')
     expect(markdown).toContain('4d12 + 5')
-    expect(markdown).toContain('[[Paralyzed]]')
+    expect(markdown).toContain('[[conditions/paralyzed|Paralyzed]]')
     expect(markdown).toContain('*Constitution Saving Throw:* DC 20')
     expect(markdown).toContain('*Failure:*')
     expect(markdown).toContain('*Success:*')
-    expect(markdown).toContain('20-foot Emanation')
+    expect(markdown).toContain('[[variant-rules/emanation-area-of-effect|Emanation]]')
     expect(markdown).toContain('- **At Will:**')
-    expect(markdown).toContain('[[Detect Magic]], [[Detect Thoughts]]')
+    expect(markdown).toContain('[[spells/detect-magic|Detect Magic]], [[spells/detect-thoughts|Detect Thoughts]]')
     expect(markdown).toContain('- **2/Day Each:**')
     expect(markdown).toContain('- **1/Day Each:**')
     expect(markdown).toContain('name: "Protective Magic"')
@@ -117,6 +118,10 @@ describe('monster mapper', () => {
     expect(preprocessMonsterTags('{@atkr m} {@hit 12}')).toBe('*Melee Attack Roll:* +12')
     expect(preprocessMonsterTags('{@atkr r} {@hit 12}')).toBe('*Ranged Attack Roll:* +12')
     expect(preprocessMonsterTags('{@atkr m,r}')).toBe('*Melee Attack Roll or Ranged Attack Roll:*')
+    expect(preprocessMonsterTags('{@spell cure wounds}')).toBe('[[spells/cure-wounds|cure wounds]]')
+    expect(preprocessMonsterTags('{@spell Shield|XPHB|a shield}')).toBe('[[spells/shield|a shield]]')
+    expect(preprocessMonsterTags('{@condition Grappled}')).toBe('[[conditions/grappled|Grappled]]')
+    expect(preprocessMonsterTags('{@item bag of holding}')).toBe('[[bag-of-holding|bag of holding]]')
   })
 
   it('preprocesses recharge tags in trait and action names', () => {

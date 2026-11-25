@@ -36,8 +36,8 @@ describe('weapon mapper', () => {
     const markdown = mapWeapon(dagger).markdown
 
     expect(markdown).toContain('title: Dagger')
-    expect(markdown).toContain('source: SRD 5.2.1')
-    expect(markdown).toContain('edition: SRD 5.2.1')
+    expect(markdown).toContain('source: XPHB')
+    expect(markdown).toContain('edition: XPHB')
     expect(markdown).toContain('item_type: Melee Weapon')
     expect(markdown).toContain('weapon_category: simple')
     expect(markdown).toContain('cost_cp: 200')
@@ -51,7 +51,7 @@ describe('weapon mapper', () => {
     expect(markdown).toContain('mastery: Nick')
     expect(markdown).toContain('  - item/melee-weapon')
     expect(markdown).toContain('  - weapon/simple')
-    expect(markdown).toContain('  - srd-5-2-1')
+    expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('```vault-item')
     expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
   })

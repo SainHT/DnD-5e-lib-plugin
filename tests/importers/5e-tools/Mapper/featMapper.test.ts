@@ -16,18 +16,19 @@ describe('feat mapper', () => {
     })
 
     expect(note.kind).toBe('feat')
-    expect(note.markdown).toContain('source: "SRD 5.2.1"')
+    expect(note.markdown).toContain('source: "XPHB"')
     expect(note.markdown).toContain('kind: "general"')
     expect(note.markdown).toContain('prerequisite: "Level 4+"')
     expect(note.markdown).toContain('  - feat/general')
-    expect(note.markdown).toContain('  - srd-5-2-1')
+    expect(note.markdown).not.toContain('srd-5-2-1')
     expect(note.markdown).toContain('**Repeatable.** You can take this feat more than once.')
     expect(note.markdown).toContain('  - key: repeatable')
     expect(note.markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
   })
 
-  it('creates a stable overview benefit for plain text entries', () => {
+  it('creates a stable overview benefit for plain text entries and falls back to unknown source', () => {
     const markdown = mapFeat({ name: 'Alert', category: 'O', entries: ['You notice danger.'] }).markdown
+    expect(markdown).toContain('source: "unknown"')
     expect(markdown).toContain('  - key: overview')
     expect(markdown).toContain('    text: "You notice danger."')
     expect(markdown).toContain('benefit_count: 1')
@@ -103,11 +104,31 @@ describe('feat mapper', () => {
       ],
     }).markdown
 
-    expect(markdown).toContain('[[Shield]]')
-    expect(markdown).toContain('[[Fireball|a fireball]]')
-    expect(markdown).toContain('[[Proficiency]]')
+    expect(markdown).toContain('[[shield|Shield]]')
+    expect(markdown).toContain('[[spells/fireball|a fireball]]')
+    expect(markdown).toContain('[[variant-rules/proficiency|Proficiency]]')
     expect(markdown).toContain('Roll 1d10 or 2d6 + 3.')
     expect(markdown).toContain('Thrown')
-    expect(markdown).toContain('- Carry [[Shield|a shield]].')
+    expect(markdown).toContain('- Carry [[shield|a shield]].')
+  })
+
+  it('resolves multi-word and foldered wiki links and strips unknown tags to plain text', () => {
+    const markdown = mapFeat({
+      name: 'Link Coverage',
+      category: 'G',
+      entries: [
+        'Cast {@spell cure wounds} or {@spell Shield|XPHB|a shield}.',
+        'Avoid {@condition Grappled}, carry {@item bag of holding}, fight {@creature Adult Red Dragon|XMM}, take {@feat Tough|XPHB}.',
+        'Ask your {@class Wizard|XPHB} about {@skill Perception|XPHB}.',
+      ],
+    }).markdown
+
+    expect(markdown).toContain('[[spells/cure-wounds|cure wounds]]')
+    expect(markdown).toContain('[[spells/shield|a shield]]')
+    expect(markdown).toContain('[[conditions/grappled|Grappled]]')
+    expect(markdown).toContain('[[bag-of-holding|bag of holding]]')
+    expect(markdown).toContain('[[bestiary/adult-red-dragon|Adult Red Dragon]]')
+    expect(markdown).toContain('[[feats/tough|Tough]]')
+    expect(markdown).toContain('Ask your Wizard about Perception.')
   })
 })

@@ -39,14 +39,14 @@ describe('gear mapper', () => {
     const markdown = mapItem(ale).markdown
 
     expect(markdown).toContain('title: Ale (mug)')
-    expect(markdown).toContain('source: SRD 5.2.1')
-    expect(markdown).toContain('edition: SRD 5.2.1')
+    expect(markdown).toContain('source: XPHB')
+    expect(markdown).toContain('edition: XPHB')
     expect(markdown).toContain('item_type: Food and Drink')
     expect(markdown).toContain('cost_cp: 4')
     expect(markdown).not.toContain('weight:')
     expect(markdown).toContain('  - item/food-and-drink')
-    expect(markdown).toContain('  - srd-5-2-1')
-    expect(markdown).toContain('*Food and Drink | Source: SRD 5.2.1*')
+    expect(markdown).not.toContain('srd-5-2-1')
+    expect(markdown).toContain('*Food and Drink | Source: XPHB*')
     expect(markdown).not.toContain('```vault-item')
     expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
   })
@@ -59,7 +59,7 @@ describe('gear mapper', () => {
     expect(markdown).toContain('cost_cp: 5000')
     expect(markdown).toContain('weight: 1')
     expect(markdown).toContain('  - item/adventuring-gear')
-    expect(markdown).toContain('*Adventuring Gear | Source: SRD 5.2.1*')
+    expect(markdown).toContain('*Adventuring Gear | Source: XPHB*')
     expect(markdown).toContain('take the Attack action')
     expect(markdown).toContain('Dexterity saving throw (DC 8')
     expect(markdown).toContain('take 1d4 Fire damage')
@@ -86,7 +86,12 @@ describe('gear mapper', () => {
     const vault: ItemVault = {
       exists: async path => path.endsWith('ale-mug.md'),
       list: async () => ({ files: [], folders: [] }),
-      read: async () => JSON.stringify({ item: [ale, alchemistFire] }),
+      read: async () => JSON.stringify({
+        item: [
+          { ...ale, srd52: undefined },
+          { ...alchemistFire, srd52: undefined },
+        ],
+      }),
       create: async path => {
         created.push(path)
       },

@@ -9,7 +9,6 @@ import {
   itemSlug,
   itemSource,
   itemTypeCode,
-  SRD_SOURCE,
 } from '../itemHelpers'
 
 export { stringValue } from '../itemHelpers'
@@ -189,7 +188,6 @@ export function weaponGroups(record: Record<string, unknown>): string[] {
 export function weaponTags(data: WeaponMarkdownData): string[] {
   const tags = ['item', `item/${itemSlug(data.itemType)}`]
   if (data.weaponCategory) tags.push(`weapon/${itemSlug(data.weaponCategory)}`)
-  if (data.source === SRD_SOURCE) tags.push('srd-5-2-1')
   for (const group of data.groups) tags.push(`group/${itemSlug(group)}`)
   return tags
 }

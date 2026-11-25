@@ -7,9 +7,9 @@
 import {
   ABILITY_NAMES,
   exportHash,
+  replaceFiveEToolsLinks,
   slug as genericSlug,
   sourceForRecord,
-  SRD_SOURCE,
   stringValue,
 } from './mapperHelpers'
 
@@ -78,26 +78,19 @@ export function featKind(value: unknown): string {
  * @param source Canonical source or edition label.
  * @returns Ordered tags beginning with the general feat tag.
  */
-export function featTags(kind: string, source: string): string[] {
-  return ['feat', `feat/${kind.replaceAll(' ', '-')}`, ...(source === SRD_SOURCE ? ['srd-5-2-1'] : [])]
+export function featTags(kind: string, _source: string): string[] {
+  return ['feat', `feat/${kind.replaceAll(' ', '-')}`]
 }
 
 /**
  * Converts feat-only 5etools reference tags into Obsidian wiki links and
- * delegates remaining inline markup to the existing shared monster sanitizer.
+ * delegates remaining inline markup to the existing shared sanitizer.
  *
  * @param value Raw feat prose.
- * @returns Markdown text with item, spell, variant-rule, and dice tags resolved.
+ * @returns Markdown text with reference and dice tags resolved.
  */
 export function preprocessFeatTags(value: string): string {
-  const withLinks = value
-    .replace(/\{@(?:item|spell|variantrule)\s+([^}]+)\}/gi, (_match, content: string) => {
-      const segments = content.split('|')
-      const baseName = segments[0]?.trim() ?? ''
-      const displayName = segments[2]?.trim()
-      if (!baseName) return ''
-      return displayName ? `[[${baseName}|${displayName}]]` : `[[${baseName}]]`
-    })
+  const withLinks = replaceFiveEToolsLinks(value)
     .replace(/\{@dice\s+([^}]+)\}/gi, (_match, dice: string) => dice.trim())
 
   return preprocessTags(withLinks)

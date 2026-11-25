@@ -17,6 +17,9 @@ class FixtureVault implements FeatVault {
     return JSON.stringify({
       feat: [
         { name: 'Current Feat', category: 'G', entries: ['Current'] },
+        { name: 'Basic Rules Feat', basicRules2024: true, source: 'XPHB', category: 'G', entries: ['Basic'] },
+        { name: 'SRD Bool Feat', srd52: true, source: 'XPHB', category: 'G', entries: ['SRD'] },
+        { name: 'SRD Source Feat', source: 'srd52', category: 'G', entries: ['SRD'] },
         { name: 'Reprinted Feat', reprintedAs: ['Current Feat'], category: 'G', entries: ['Old'] },
       ],
     })
@@ -28,10 +31,13 @@ class FixtureVault implements FeatVault {
 }
 
 describe('feat importer', () => {
-  it('skips feats that have been reprinted', async () => {
+  it('skips feats that have been reprinted or belong to srd52 while keeping basicRules2024', async () => {
     const vault = new FixtureVault()
 
-    await expect(importFeats(vault, 'feats.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 0 })
-    expect(vault.created).toEqual(['SRD 5.2.1/feats/current-feat.md'])
+    await expect(importFeats(vault, 'feats.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 2, skipped: 2 })
+    expect(vault.created).toEqual([
+      'SRD 5.2.1/feats/current-feat.md',
+      'SRD 5.2.1/feats/basic-rules-feat.md',
+    ])
   })
 })

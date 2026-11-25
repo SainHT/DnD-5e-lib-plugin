@@ -38,15 +38,15 @@ describe('armor mapper', () => {
     const markdown = mapShield(shield).markdown
 
     expect(markdown).toContain('title: Shield')
-    expect(markdown).toContain('source: SRD 5.2.1')
-    expect(markdown).toContain('edition: SRD 5.2.1')
+    expect(markdown).toContain('source: XPHB')
+    expect(markdown).toContain('edition: XPHB')
     expect(markdown).toContain('item_type: Shield')
     expect(markdown).toContain('cost_cp: 1000')
     expect(markdown).toContain('weight: 6')
     expect(markdown).toContain('ac: 2')
     expect(markdown).toContain('  - item/shield')
-    expect(markdown).toContain('  - srd-5-2-1')
-    expect(markdown).toContain('*Shield | Source: SRD 5.2.1*')
+    expect(markdown).not.toContain('srd-5-2-1')
+    expect(markdown).toContain('*Shield | Source: XPHB*')
     expect(markdown).toContain('```vault-item\nweight: 6\nac: 2\n```')
     expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
   })
@@ -60,7 +60,7 @@ describe('armor mapper', () => {
     expect(markdown).toContain('weight: 20')
     expect(markdown).toContain('ac: 14')
     expect(markdown).toContain('  - item/medium-armor')
-    expect(markdown).toContain('*Medium Armor | Source: SRD 5.2.1*')
+    expect(markdown).toContain('*Medium Armor | Source: XPHB*')
     expect(markdown).toContain('```vault-item\nweight: 20\nac: 14\n```')
   })
 
