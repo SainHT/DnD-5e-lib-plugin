@@ -34,32 +34,32 @@ const breastplate = {
 }
 
 describe('armor mapper', () => {
-  it('renders exact shield frontmatter and vault-item metadata', () => {
-    const markdown = mapShield(shield).markdown
+  it('renders exact shield frontmatter and vault-item metadata', async () => {
+    const markdown = (await mapShield(shield)).markdown
 
-    expect(markdown).toContain('title: Shield')
-    expect(markdown).toContain('source: XPHB')
-    expect(markdown).toContain('edition: XPHB')
-    expect(markdown).toContain('item_type: Shield')
+    expect(markdown).toContain('title: "Shield"')
+    expect(markdown).toContain('source: "XPHB"')
+    expect(markdown).toContain('edition: "XPHB"')
+    expect(markdown).toContain('item_type: "Shield"')
     expect(markdown).toContain('cost_cp: 1000')
     expect(markdown).toContain('weight: 6')
     expect(markdown).toContain('ac: 2')
-    expect(markdown).toContain('  - item/shield')
+    expect(markdown).toContain('  - "item/shield"')
     expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('*Shield | Source: XPHB*')
     expect(markdown).toContain('```vault-item\nweight: 6\nac: 2\n```')
-    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+    expect(markdown).toMatch(/export_hash: "sha256-[0-9a-f]{12}"/)
   })
 
-  it('renders exact breastplate frontmatter and vault-item metadata', () => {
-    const markdown = mapArmor(breastplate).markdown
+  it('renders exact breastplate frontmatter and vault-item metadata', async () => {
+    const markdown = (await mapArmor(breastplate)).markdown
 
-    expect(markdown).toContain('title: Breastplate')
-    expect(markdown).toContain('item_type: Medium Armor')
+    expect(markdown).toContain('title: "Breastplate"')
+    expect(markdown).toContain('item_type: "Medium Armor"')
     expect(markdown).toContain('cost_cp: 40000')
     expect(markdown).toContain('weight: 20')
     expect(markdown).toContain('ac: 14')
-    expect(markdown).toContain('  - item/medium-armor')
+    expect(markdown).toContain('  - "item/medium-armor"')
     expect(markdown).toContain('*Medium Armor | Source: XPHB*')
     expect(markdown).toContain('```vault-item\nweight: 20\nac: 14\n```')
   })
@@ -74,11 +74,11 @@ describe('armor mapper', () => {
     expect(armorAc({ ac: '14' })).toBe(14)
   })
 
-  it('routes mundane armor into the items pipeline and magic armor into magic items', () => {
+  it('routes mundane armor into the items pipeline and magic armor into magic items', async () => {
     expect(isMagicItem({ ...shield, rarity: 'none' })).toBe(false)
     expect(isMagicItem({ ...shield, rarity: 'rare' })).toBe(true)
-    expect(mapItem(shield).kind).toBe('item')
-    expect(mapItem(shield).markdown).toContain('item_type: Shield')
-    expect(mapItem({ ...breastplate, rarity: 'uncommon' }).kind).toBe('magicItem')
+    expect((await mapItem(shield)).kind).toBe('item')
+    expect((await mapItem(shield)).markdown).toContain('item_type: "Shield"')
+    expect((await mapItem({ ...breastplate, rarity: 'uncommon' })).kind).toBe('magicItem')
   })
 })

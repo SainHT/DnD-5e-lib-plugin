@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_NOTE_FOLDERS } from '../../../../src/platform'
+import { bodyHash } from '../../../../src/compendium'
+import { DEFAULT_NOTE_FOLDERS, parseNote } from '../../../../src/platform'
 import {
   importMonsters,
   mapMonster,
@@ -65,8 +66,8 @@ const lich = {
 }
 
 describe('monster mapper', () => {
-  it('renders Lich frontmatter and core statblock fields', () => {
-    const markdown = mapMonster(lich).markdown
+  it('renders Lich frontmatter and core statblock fields', async () => {
+    const markdown = (await mapMonster(lich)).markdown
 
     expect(markdown).toContain('title: "Lich"')
     expect(markdown).toContain('source: "XMM"')
@@ -82,11 +83,11 @@ describe('monster mapper', () => {
     expect(markdown).toContain('initiative: "+17 (27)"')
     expect(markdown).toContain('gear: "Component Pouch"')
     expect(markdown).toContain('resistances: Cold, Lightning')
-    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+    expect(markdown).toMatch(/export_hash: "sha256-[0-9a-f]{12}"/)
   })
 
-  it('preprocesses tags and distributes spellcasting', () => {
-    const markdown = mapMonster(lich).markdown
+  it('preprocesses tags and distributes spellcasting', async () => {
+    const markdown = (await mapMonster(lich)).markdown
 
     expect(markdown).toContain('*Melee Attack Roll or Ranged Attack Roll:*')
     expect(markdown).toContain('*Melee Attack Roll:*')
@@ -124,19 +125,19 @@ describe('monster mapper', () => {
     expect(preprocessMonsterTags('{@item bag of holding}')).toBe('[[bag-of-holding|bag of holding]]')
   })
 
-  it('preprocesses recharge tags in trait and action names', () => {
-    const markdown = mapMonster({
+  it('preprocesses recharge tags in trait and action names', async () => {
+    const markdown = (await mapMonster({
       ...lich,
       trait: [{ name: 'Elemental Ward {@recharge}', entries: ['The ward restores at dawn.'] }],
       action: [{ name: 'Arcane Breath {@recharge 5}', entries: ['The creature breathes magic.'] }],
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('name: "Elemental Ward (Recharge 6)"')
     expect(markdown).toContain('name: "Arcane Breath (Recharge 5)"')
   })
 
-  it('renders standard monster reactions', () => {
-    const markdown = mapMonster({
+  it('renders standard monster reactions', async () => {
+    const markdown = (await mapMonster({
       ...lich,
       spellcasting: undefined,
       reaction: [
@@ -147,25 +148,25 @@ describe('monster mapper', () => {
           ],
         },
       ],
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('reactions:')
     expect(markdown).toContain('name: "Instinctive Charm"')
     expect(markdown).toContain('it makes a DC 19 Wisdom saving throw.')
   })
 
-  it('renders spellcasting reactions', () => {
-    const markdown = mapMonster({
+  it('renders spellcasting reactions', async () => {
+    const markdown = (await mapMonster({
       ...lich,
       reaction: undefined,
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('reactions:')
     expect(markdown).toContain('name: "Protective Magic"')
   })
 
-  it('renders standard and spellcasting reactions together', () => {
-    const markdown = mapMonster({
+  it('renders standard and spellcasting reactions together', async () => {
+    const markdown = (await mapMonster({
       ...lich,
       reaction: [
         {
@@ -173,15 +174,15 @@ describe('monster mapper', () => {
           entries: ['The attacker makes a {@dc 19} Wisdom saving throw.'],
         },
       ],
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('reactions:')
     expect(markdown).toContain('name: "Instinctive Charm"')
     expect(markdown).toContain('name: "Protective Magic"')
   })
 
-  it('maps top-level bonus actions alongside regular actions', () => {
-    const markdown = mapMonster({
+  it('maps top-level bonus actions alongside regular actions', async () => {
+    const markdown = (await mapMonster({
       ...lich,
       bonus: [
         {
@@ -189,7 +190,7 @@ describe('monster mapper', () => {
           entries: ['The creature teleports up to 30 feet.'],
         },
       ],
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('name: "Shadow Step"')
   })
@@ -207,5 +208,21 @@ describe('monster mapper', () => {
 
     await expect(importMonsters(vault, 'bestiary.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 0, skipped: 1 })
     expect(created).toEqual([])
+  })
+
+  it('quotes ambiguous YAML scalars and computes export_hash with compendium bodyHash', async () => {
+    const markdown = (await mapMonster({
+      ...lich,
+      name: 'Yes',
+      source: 'No',
+      cr: '1/4',
+    })).markdown
+
+    const parsed = parseNote(markdown)
+    expect(parsed.frontmatter.title).toBe('Yes')
+    expect(parsed.frontmatter.source).toBe('No')
+    expect(parsed.frontmatter.cr).toBe('1/4')
+    expect(parsed.frontmatter.export_hash).toBe(await bodyHash(parsed.body))
+    expect(await bodyHash('abc')).toMatch(/^sha256-ba7816bf/)
   })
 })

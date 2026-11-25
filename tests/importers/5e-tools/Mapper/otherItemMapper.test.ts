@@ -43,35 +43,35 @@ const generic = {
 }
 
 describe('other item fallback mapper', () => {
-  it('renders exact mount fallback metadata', () => {
-    const markdown = mapOtherItem(camel).markdown
+  it('renders exact mount fallback metadata', async () => {
+    const markdown = (await mapOtherItem(camel)).markdown
 
-    expect(markdown).toContain('title: Camel')
-    expect(markdown).toContain('source: XPHB')
-    expect(markdown).toContain('edition: XPHB')
-    expect(markdown).toContain('item_type: Mount')
+    expect(markdown).toContain('title: "Camel"')
+    expect(markdown).toContain('source: "XPHB"')
+    expect(markdown).toContain('edition: "XPHB"')
+    expect(markdown).toContain('item_type: "Mount"')
     expect(markdown).toContain('cost_cp: 5000')
-    expect(markdown).toContain('carrying_capacity: 450 lb.')
-    expect(markdown).toContain('speed: 50 ft.')
-    expect(markdown).toContain('  - item/mount')
+    expect(markdown).toContain('carrying_capacity: "450 lb."')
+    expect(markdown).toContain('speed: "50 ft."')
+    expect(markdown).toContain('  - "item/mount"')
     expect(markdown).toContain('*Mount | Source: XPHB*')
-    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+    expect(markdown).toMatch(/export_hash: "sha256-[0-9a-f]{12}"/)
   })
 
-  it('renders tack and harness fallback metadata', () => {
-    const markdown = mapOtherItem(stabling).markdown
+  it('renders tack and harness fallback metadata', async () => {
+    const markdown = (await mapOtherItem(stabling)).markdown
 
-    expect(markdown).toContain('title: Stabling (per day)')
-    expect(markdown).toContain('item_type: Tack and Harness')
+    expect(markdown).toContain('title: "Stabling (per day)"')
+    expect(markdown).toContain('item_type: "Tack and Harness"')
     expect(markdown).toContain('cost_cp: 5')
-    expect(markdown).toContain('  - item/tack-and-harness')
+    expect(markdown).toContain('  - "item/tack-and-harness"')
     expect(markdown).toContain('*Tack and Harness | Source: XPHB*')
   })
 
-  it('handles unknown types and generic nested entries', () => {
-    const markdown = mapItem(generic).markdown
+  it('handles unknown types and generic nested entries', async () => {
+    const markdown = (await mapItem(generic)).markdown
 
-    expect(markdown).toContain('item_type: Generic Variant')
+    expect(markdown).toContain('item_type: "Generic Variant"')
     expect(markdown).toContain('weight: 2')
     expect(markdown).toContain('This object has a Strange Property.')
     expect(markdown).toContain('```vault-item\nweight: 2\n```')
@@ -86,11 +86,11 @@ describe('other item fallback mapper', () => {
     expect(otherItemCostCopper({ value: 5 })).toBe(5)
   })
 
-  it('routes MNT, TAH, and unknown items to the Other fallback', () => {
+  it('routes MNT, TAH, and unknown items to the Other fallback', async () => {
     expect(itemKind(camel)).toBe('Other')
     expect(itemKind(stabling)).toBe('Other')
     expect(itemKind(generic)).toBe('Other')
-    expect(mapItem(camel).markdown).toContain('item_type: Mount')
+    expect((await mapItem(camel)).markdown).toContain('item_type: "Mount"')
   })
 
   it('imports fallback items through the configured items folder', async () => {
@@ -112,9 +112,9 @@ describe('other item fallback mapper', () => {
 
     await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 3, skipped: 0 })
     expect(created).toEqual([
-      'SRD 5.2.1/items/camel.md',
-      'SRD 5.2.1/items/stabling-per-day.md',
-      'SRD 5.2.1/items/mystery-object.md',
+      'Homebrew/5etools/items/camel.md',
+      'Homebrew/5etools/items/stabling-per-day.md',
+      'Homebrew/5etools/items/mystery-object.md',
     ])
   })
 })

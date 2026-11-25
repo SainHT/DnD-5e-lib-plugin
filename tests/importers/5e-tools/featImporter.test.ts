@@ -36,8 +36,8 @@ describe('feat importer', () => {
 
     await expect(importFeats(vault, 'feats.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 2, skipped: 2 })
     expect(vault.created).toEqual([
-      'SRD 5.2.1/feats/current-feat.md',
-      'SRD 5.2.1/feats/basic-rules-feat.md',
+      'Homebrew/5etools/feats/current-feat.md',
+      'Homebrew/5etools/feats/basic-rules-feat.md',
     ])
   })
 })

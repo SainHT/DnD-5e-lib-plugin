@@ -35,30 +35,30 @@ const alchemistFire = {
 }
 
 describe('gear mapper', () => {
-  it('renders simple food and drink frontmatter without a vault block', () => {
-    const markdown = mapItem(ale).markdown
+  it('renders simple food and drink frontmatter without a vault block', async () => {
+    const markdown = (await mapItem(ale)).markdown
 
-    expect(markdown).toContain('title: Ale (mug)')
-    expect(markdown).toContain('source: XPHB')
-    expect(markdown).toContain('edition: XPHB')
-    expect(markdown).toContain('item_type: Food and Drink')
+    expect(markdown).toContain('title: "Ale (mug)"')
+    expect(markdown).toContain('source: "XPHB"')
+    expect(markdown).toContain('edition: "XPHB"')
+    expect(markdown).toContain('item_type: "Food and Drink"')
     expect(markdown).toContain('cost_cp: 4')
     expect(markdown).not.toContain('weight:')
-    expect(markdown).toContain('  - item/food-and-drink')
+    expect(markdown).toContain('  - "item/food-and-drink"')
     expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('*Food and Drink | Source: XPHB*')
     expect(markdown).not.toContain('```vault-item')
-    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+    expect(markdown).toMatch(/export_hash: "sha256-[0-9a-f]{12}"/)
   })
 
-  it('renders complex gear entries and conditional physical metadata', () => {
-    const markdown = mapItem(alchemistFire).markdown
+  it('renders complex gear entries and conditional physical metadata', async () => {
+    const markdown = (await mapItem(alchemistFire)).markdown
 
-    expect(markdown).toContain('title: Alchemist\'s Fire')
-    expect(markdown).toContain('item_type: Adventuring Gear')
+    expect(markdown).toContain('title: "Alchemist\'s Fire"')
+    expect(markdown).toContain('item_type: "Adventuring Gear"')
     expect(markdown).toContain('cost_cp: 5000')
     expect(markdown).toContain('weight: 1')
-    expect(markdown).toContain('  - item/adventuring-gear')
+    expect(markdown).toContain('  - "item/adventuring-gear"')
     expect(markdown).toContain('*Adventuring Gear | Source: XPHB*')
     expect(markdown).toContain('take the Attack action')
     expect(markdown).toContain('Dexterity saving throw (DC 8')
@@ -98,6 +98,6 @@ describe('gear mapper', () => {
     }
 
     await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 1 })
-    expect(created).toEqual(["SRD 5.2.1/items/alchemists-fire.md"])
+    expect(created).toEqual(['Homebrew/5etools/items/alchemists-fire.md'])
   })
 })

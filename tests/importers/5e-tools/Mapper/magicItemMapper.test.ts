@@ -86,33 +86,34 @@ const beltOfGiantStrength = {
 }
 
 describe('magic item mapper', () => {
-  it('maps standard magic items with frontmatter and vault-item metadata', () => {
-    const markdown = mapItem(bagOfHolding).markdown
-    expect(mapItem(bagOfHolding).kind).toBe('magicItem')
-    expect(markdown).toContain('title: Bag of Holding')
-    expect(markdown).toContain('source: XDMG')
-    expect(markdown).toContain('item_type: Wondrous Item')
-    expect(markdown).toContain('rarity: uncommon')
+  it('maps standard magic items with frontmatter and vault-item metadata', async () => {
+    const mapped = await mapItem(bagOfHolding)
+    const markdown = mapped.markdown
+    expect(mapped.kind).toBe('magicItem')
+    expect(markdown).toContain('title: "Bag of Holding"')
+    expect(markdown).toContain('source: "XDMG"')
+    expect(markdown).toContain('item_type: "Wondrous Item"')
+    expect(markdown).toContain('rarity: "uncommon"')
     expect(markdown).toContain('requires_attunement: false')
     expect(markdown).toContain('wondrous: true')
     expect(markdown).toContain('weight: 15')
-    expect(markdown).toContain('  - magic-item')
-    expect(markdown).not.toContain('  - item\n')
+    expect(markdown).toContain('  - "magic-item"')
+    expect(markdown).not.toContain('  - "item"\n')
     expect(markdown).not.toContain('item/magic')
     expect(markdown).not.toContain('srd-5-2-1')
     expect(markdown).toContain('*Uncommon | Source: XDMG*')
     expect(markdown).toContain('This bag has an extradimensional space.')
     expect(markdown).toContain('```vault-item\nweight: 15\n```')
-    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+    expect(markdown).toMatch(/export_hash: "sha256-[0-9a-f]{12}"/)
   })
 
-  it('maps Staff of Power charges, restrictions, bonuses, spells, and inline tags', () => {
-    const markdown = mapMagicItemRecord(staffOfPower).markdown
-    expect(markdown).toContain('rarity: very rare')
+  it('maps Staff of Power charges, restrictions, bonuses, spells, and inline tags', async () => {
+    const markdown = (await mapMagicItemRecord(staffOfPower)).markdown
+    expect(markdown).toContain('rarity: "very rare"')
     expect(markdown).toContain('requires_attunement: true')
     expect(markdown).toContain('attunement_restriction:')
     expect(markdown).toContain('charges: 20')
-    expect(markdown).toContain('recharge: dawn')
+    expect(markdown).toContain('recharge: "dawn"')
     expect(markdown).toContain('recharge_amount: "2d8 + 4"')
     expect(markdown).toContain('bonus_ac: "+2"')
     expect(markdown).toContain('bonus_weapon: "+2"')
@@ -127,10 +128,10 @@ describe('magic item mapper', () => {
     expect(markdown).not.toContain('{@')
   })
 
-  it('maps variable-rarity item groups and table variants', () => {
-    const markdown = mapMagicItemRecord(beltOfGiantStrength).markdown
-    expect(markdown).toContain('item_type: Item Group')
-    expect(markdown).toContain('rarity: varies')
+  it('maps variable-rarity item groups and table variants', async () => {
+    const markdown = (await mapMagicItemRecord(beltOfGiantStrength)).markdown
+    expect(markdown).toContain('item_type: "Item Group"')
+    expect(markdown).toContain('rarity: "varies"')
     expect(markdown).toContain('requires_attunement: true')
     expect(markdown).toContain('| Belt | Str. | Rarity |')
     expect(markdown).toContain('| Belt of Hill Giant Strength | 21 | Rare |')
@@ -153,7 +154,7 @@ describe('magic item mapper', () => {
       },
     }
     await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 1 })
-    expect(created).toEqual(['SRD 5.2.1/magic-items/bag-of-holding.md'])
+    expect(created).toEqual(['Homebrew/5etools/magic-items/bag-of-holding.md'])
   })
 
   it('cleans inline tags and accepts direct builder use', () => {
@@ -161,7 +162,7 @@ describe('magic item mapper', () => {
     expect(cleanMagicItemInlineTags('{@dice 2d8 + 4}')).toBe('2d8 + 4')
   })
 
-  it('recursively renders Blood Fury Tattoo named entries and nested lists', () => {
+  it('recursively renders Blood Fury Tattoo named entries and nested lists', async () => {
     const tattoo = {
       name: 'Blood Fury Tattoo',
       source: 'XDMG',
@@ -183,7 +184,7 @@ describe('magic item mapper', () => {
       }],
     }
 
-    const markdown = mapMagicItemRecord(tattoo).markdown
+    const markdown = (await mapMagicItemRecord(tattoo)).markdown
 
     expect(markdown).toContain('**Bloodthirsty Strikes.**')
     expect(markdown).toContain('Once on each of your turns, you can deal extra damage.')
@@ -191,7 +192,7 @@ describe('magic item mapper', () => {
     expect(markdown).toContain('- The tattoo sheds bright light.')
   })
 
-  it('maps Blasted Goggles curse true with charges and recharge metadata', () => {
+  it('maps Blasted Goggles curse true with charges and recharge metadata', async () => {
     const goggles = {
       name: 'Blasted Goggles',
       source: 'XDMG',
@@ -204,12 +205,12 @@ describe('magic item mapper', () => {
       entries: ['A curse consumes the wearers sight.'],
     }
 
-    const markdown = mapMagicItemRecord(goggles).markdown
+    const markdown = (await mapMagicItemRecord(goggles)).markdown
 
     expect(markdown).toContain('cursed: true')
-    expect(markdown).toContain('  - cursed')
+    expect(markdown).toContain('  - "cursed"')
     expect(markdown).toContain('charges: 3')
-    expect(markdown).toContain('recharge: dawn')
-    expect(markdown).toContain('recharge_amount: 1d3')
+    expect(markdown).toContain('recharge: "dawn"')
+    expect(markdown).toContain('recharge_amount: "1d3"')
   })
 })

@@ -28,8 +28,8 @@ const acidArrow = {
 }
 
 describe('spell mapper', () => {
-  it('renders the requested metadata and preprocesses damage tags', () => {
-    const markdown = mapSpell(acidArrow).markdown
+  it('renders the requested metadata and preprocesses damage tags', async () => {
+    const markdown = (await mapSpell(acidArrow)).markdown
 
     expect(markdown).toContain('title: "Acid Arrow"')
     expect(markdown).toContain('source: "XPHB"')
@@ -42,11 +42,11 @@ describe('spell mapper', () => {
     expect(markdown).toContain('damage_dice: "4d4"')
     expect(markdown).toContain('takes 4d4 Acid damage')
     expect(markdown).toContain('increases by 1d4')
-    expect(markdown).toMatch(/export_hash: sha256-[0-9a-f]{12}/)
+    expect(markdown).toMatch(/export_hash: "sha256-[0-9a-f]{12}"/)
   })
 
-  it('renders conditioned reaction casting time in frontmatter and body', () => {
-    const markdown = mapSpell({
+  it('renders conditioned reaction casting time in frontmatter and body', async () => {
+    const markdown = (await mapSpell({
       ...acidArrow,
       name: 'Shield',
       srd52: 'Shield',
@@ -58,7 +58,7 @@ describe('spell mapper', () => {
           condition: 'which you take when a {@condition humanoid} you can see within 60 feet of you dies',
         },
       ],
-    }).markdown
+    })).markdown
 
     const castingTime = '1 reaction, which you take when a humanoid you can see within 60 feet of you dies'
     expect(markdown).toContain(`casting_time: ${JSON.stringify(castingTime)}`)
@@ -66,9 +66,9 @@ describe('spell mapper', () => {
     expect(markdown).not.toContain('{@condition')
   })
 
-  it('unwraps timed durations and pluralizes their units', () => {
-    const singular = mapSpell({ ...acidArrow, duration: [{ type: 'timed', duration: { type: 'round', amount: 1 } }] }).markdown
-    const plural = mapSpell({ ...acidArrow, duration: [{ type: 'timed', duration: { type: 'minute', amount: 10 } }] }).markdown
+  it('unwraps timed durations and pluralizes their units', async () => {
+    const singular = (await mapSpell({ ...acidArrow, duration: [{ type: 'timed', duration: { type: 'round', amount: 1 } }] })).markdown
+    const plural = (await mapSpell({ ...acidArrow, duration: [{ type: 'timed', duration: { type: 'minute', amount: 10 } }] })).markdown
 
     expect(singular).toContain('duration: "1 round"')
     expect(singular).toContain('- **Duration:** 1 round')
@@ -76,44 +76,44 @@ describe('spell mapper', () => {
     expect(plural).toContain('- **Duration:** 10 minutes')
   })
 
-  it('formats timed concentration duration and preserves the frontmatter flag', () => {
-    const markdown = mapSpell({
+  it('formats timed concentration duration and preserves the frontmatter flag', async () => {
+    const markdown = (await mapSpell({
       ...acidArrow,
       duration: [{ type: 'timed', duration: { type: 'hour', amount: 1 }, concentration: true }],
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('duration: "Concentration, up to 1 hour"')
     expect(markdown).toContain('- **Duration:** Concentration, up to 1 hour')
     expect(markdown).toContain('concentration: true')
   })
 
-  it('joins multiple duration options and detects concentration on any option', () => {
-    const markdown = mapSpell({
+  it('joins multiple duration options and detects concentration on any option', async () => {
+    const markdown = (await mapSpell({
       ...acidArrow,
       duration: [
         { type: 'instant' },
         { type: 'timed', duration: { type: 'hour', amount: 1 } },
         { type: 'timed', duration: { type: 'minute', amount: 10 }, concentration: true },
       ],
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('duration: "Instantaneous or 1 hour or Concentration, up to 10 minutes"')
     expect(markdown).toContain('- **Duration:** Instantaneous or 1 hour or Concentration, up to 10 minutes')
     expect(markdown).toContain('concentration: true')
   })
 
-  it('reads ritual status from nested metadata and uses the vault ritual tag convention', () => {
-    const ritualMarkdown = mapSpell({ ...acidArrow, meta: { ritual: true } }).markdown
-    const nonRitualMarkdown = mapSpell(acidArrow).markdown
+  it('reads ritual status from nested metadata and uses the vault ritual tag convention', async () => {
+    const ritualMarkdown = (await mapSpell({ ...acidArrow, meta: { ritual: true } })).markdown
+    const nonRitualMarkdown = (await mapSpell(acidArrow)).markdown
 
     expect(ritualMarkdown).toContain('ritual: true')
-    expect(ritualMarkdown).toContain('- ritual')
+    expect(ritualMarkdown).toContain('- "ritual"')
     expect(nonRitualMarkdown).toContain('ritual: false')
-    expect(nonRitualMarkdown).not.toContain('- ritual')
+    expect(nonRitualMarkdown).not.toContain('- "ritual"')
   })
 
-  it('renders sorted cantrip scaling dice and higher-level entries', () => {
-    const markdown = mapSpell({
+  it('renders sorted cantrip scaling dice and higher-level entries', async () => {
+    const markdown = (await mapSpell({
       name: 'Acid Splash',
       source: 'XPHB',
       srd52: 'Acid Splash',
@@ -136,11 +136,11 @@ describe('spell mapper', () => {
         label: 'Acid damage',
         scaling: { '11': '3d6', '1': '1d6', '17': '4d6', '5': '2d6' },
       },
-    }).markdown
+    })).markdown
 
     expect(markdown).toContain('cantrip_dice:')
     expect(markdown).toContain('  - "1d6"\n  - "2d6"\n  - "3d6"\n  - "4d6"')
-    expect(markdown).toContain('- spell/cantrip')
+    expect(markdown).toContain('- "spell/cantrip"')
     expect(markdown).toContain('Cantrip Upgrade. The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).')
     expect(markdown).toContain('in a Sphere')
   })

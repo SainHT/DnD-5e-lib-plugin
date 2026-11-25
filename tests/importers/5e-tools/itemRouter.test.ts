@@ -64,7 +64,7 @@ describe('item category router', () => {
     }
 
     await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 1, skipped: 2 })
-    expect(created).toEqual(['SRD 5.2.1/items/unknown-token.md'])
+    expect(created).toEqual(['Homebrew/5etools/items/unknown-token.md'])
   })
 
   it('imports magic items through the magic-items folder', async () => {
@@ -85,8 +85,8 @@ describe('item category router', () => {
 
     await expect(importItems(vault, 'items.json', DEFAULT_NOTE_FOLDERS)).resolves.toEqual({ imported: 2, skipped: 0 })
     expect(created).toEqual([
-      'SRD 5.2.1/items/shield.md',
-      'SRD 5.2.1/magic-items/shield-of-test.md',
+      'Homebrew/5etools/items/shield.md',
+      'Homebrew/5etools/magic-items/shield-of-test.md',
     ])
   })
 })
