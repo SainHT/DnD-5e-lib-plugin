@@ -515,6 +515,13 @@ function FiveEToolsSection({ narrow }: { narrow: boolean }) {
             ? 'Importing…'
             : 'Import 5etools Data'}
       </button>
+      <p role="status" className="bst-note">
+        {progress
+          ? `Importing ${progress.file} (${progress.current} of ${progress.total})`
+          : busy
+            ? 'Importing…'
+            : ''}
+      </p>
     </Section>
   )
 }
