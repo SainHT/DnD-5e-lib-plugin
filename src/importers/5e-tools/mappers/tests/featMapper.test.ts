@@ -66,7 +66,7 @@ describe('feat mapper', () => {
 
   it('renders list entry items in the overview benefit', async () => {
     const markdown = (await mapFeat({
-      name: 'Athlete',
+      name: 'Athletic',
       category: 'G',
       entries: [
         'You have undergone extensive physical training to gain the following benefits:',
@@ -88,7 +88,7 @@ describe('feat mapper', () => {
 
   it('converts feat inline reference and dice tags', async () => {
     const markdown = (await mapFeat({
-      name: 'Tagged Feat',
+      name: 'Tagged Test Feat',
       category: 'G',
       entries: [
         'Gain {@item Shield|XBHP}, cast {@spell Fireball|XPHB|a fireball}, and learn {@variantrule Proficiency|XPHB}.',

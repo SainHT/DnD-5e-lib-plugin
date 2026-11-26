@@ -3,7 +3,7 @@ import { DEFAULT_NOTE_FOLDERS } from '../../../../platform'
 import { importSpells, mapSpell, type SpellVault } from '../../'
 
 const acidArrow = {
-  name: "Melf's Acid Arrow",
+  name: "Acid Arrow",
   source: 'XPHB',
   srd52: 'Acid Arrow',
   basicRules2024: true,

@@ -162,15 +162,15 @@ describe('magic item mapper', () => {
     expect(cleanMagicItemInlineTags('{@dice 2d8 + 4}')).toBe('2d8 + 4')
   })
 
-  it('recursively renders Blood Fury Tattoo named entries and nested lists', async () => {
+  it('recursively renders Very Cool Tattoo named entries and nested lists', async () => {
     const tattoo = {
-      name: 'Blood Fury Tattoo',
+      name: 'Very Cool Tattoo',
       source: 'XDMG',
       rarity: 'legendary',
       wondrous: true,
       entries: [{
         type: 'entries',
-        name: 'Bloodthirsty Strikes',
+        name: 'Impresive Strikes',
         entries: [
           'Once on each of your turns, you can deal extra damage.',
           {
@@ -186,15 +186,15 @@ describe('magic item mapper', () => {
 
     const markdown = (await mapMagicItemRecord(tattoo)).markdown
 
-    expect(markdown).toContain('**Bloodthirsty Strikes.**')
+    expect(markdown).toContain('**Impresive Strikes.**')
     expect(markdown).toContain('Once on each of your turns, you can deal extra damage.')
     expect(markdown).toContain('- The attack deals 4d6 extra damage.')
     expect(markdown).toContain('- The tattoo sheds bright light.')
   })
 
-  it('maps Blasted Goggles curse true with charges and recharge metadata', async () => {
+  it('maps Great Goggles curse true with charges and recharge metadata', async () => {
     const goggles = {
-      name: 'Blasted Goggles',
+      name: 'Great Goggles',
       source: 'XDMG',
       rarity: 'rare',
       curse: true,

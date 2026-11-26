@@ -142,7 +142,7 @@ describe('monster mapper', () => {
       spellcasting: undefined,
       reaction: [
         {
-          name: 'Instinctive Charm',
+          name: 'Charm Galore',
           entries: [
             'When a creature within 60 feet makes an attack roll, it makes a {@dc 19} Wisdom saving throw.',
           ],
@@ -151,7 +151,7 @@ describe('monster mapper', () => {
     })).markdown
 
     expect(markdown).toContain('reactions:')
-    expect(markdown).toContain('name: "Instinctive Charm"')
+    expect(markdown).toContain('name: "Charm Galore"')
     expect(markdown).toContain('it makes a DC 19 Wisdom saving throw.')
   })
 
@@ -170,14 +170,14 @@ describe('monster mapper', () => {
       ...lich,
       reaction: [
         {
-          name: 'Instinctive Charm',
+          name: 'Charm Galore',
           entries: ['The attacker makes a {@dc 19} Wisdom saving throw.'],
         },
       ],
     })).markdown
 
     expect(markdown).toContain('reactions:')
-    expect(markdown).toContain('name: "Instinctive Charm"')
+    expect(markdown).toContain('name: "Charm Galore"')
     expect(markdown).toContain('name: "Protective Magic"')
   })
 
@@ -186,13 +186,13 @@ describe('monster mapper', () => {
       ...lich,
       bonus: [
         {
-          name: 'Shadow Step',
+          name: 'Shadow Walk',
           entries: ['The creature teleports up to 30 feet.'],
         },
       ],
     })).markdown
 
-    expect(markdown).toContain('name: "Shadow Step"')
+    expect(markdown).toContain('name: "Shadow Walk"')
   })
 
   it('writes monsters to the configured bestiary folder and skips existing notes', async () => {
