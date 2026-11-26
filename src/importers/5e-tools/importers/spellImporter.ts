@@ -38,9 +38,9 @@ export class SpellImporter extends EntityImporter {
  */
 export async function importSpells(
   vault: SpellVault,
-  jsonPath: string,
+  source: string | Record<string, unknown> | FiveEToolsRecord[],
   folders: NoteFoldersSettings,
   onRecord?: (done: number, total: number) => void,
 ): Promise<SpellImportReport> {
-  return new SpellImporter(vault, folders).import(jsonPath, onRecord)
+  return new SpellImporter(vault, folders).import(source, onRecord)
 }

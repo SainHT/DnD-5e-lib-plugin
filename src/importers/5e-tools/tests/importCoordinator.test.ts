@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { FiveEToolsImportCoordinator, type ImportProgress } from '../importCoordinator'
 import type { VaultAdapter } from '../fileHandler'
 import type { WritableVault } from '../importers/entityImporter'
@@ -62,5 +62,30 @@ describe('5etools import pipeline', () => {
       { file: 'spells.json', current: 1, total: 1 },
     ])
     expect(notices).toEqual(['5etools data found: 1 item in 1 JSON file.'])
+  })
+
+  it('reads each file only once during import and skips unrecognized folder JSON', async () => {
+    const files: Record<string, string> = {
+      'data/spells.json': '{"spell":[{"name":"Light","level":0}]}',
+      'data/fluff.json': '{"fluff":[{"name":"Ignore"}]}',
+    }
+    const created: string[] = []
+    const adapter: WritableVault = {
+      exists: async path => path === 'data' || path in files,
+      list: async () => ({ files: Object.keys(files), folders: [] }),
+      read: async path => files[path],
+      create: async path => {
+        created.push(path)
+      },
+    }
+    const readSpy = vi.spyOn(adapter, 'read')
+
+    const report = await new FiveEToolsImportCoordinator(adapter).import('data')
+
+    expect(report).toEqual({ files: 1, items: 1 })
+    expect(created).toEqual(['Homebrew/5etools/spells/light.md'])
+    expect(readSpy).toHaveBeenCalledTimes(2)
+    expect(readSpy).toHaveBeenNthCalledWith(1, 'data/spells.json')
+    expect(readSpy).toHaveBeenNthCalledWith(2, 'data/fluff.json')
   })
 })

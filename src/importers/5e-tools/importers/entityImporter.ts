@@ -54,13 +54,16 @@ export abstract class EntityImporter {
   }
 
   /**
-   * Imports current records from one 5etools JSON file.
+   * Imports current records from a vault JSON path or pre-parsed 5etools data.
    *
-   * @param jsonPath Vault path to a JSON file.
+   * @param source Vault path to a JSON file, parsed JSON container, or record array.
    * @returns Import counts.
    */
-  async import(jsonPath: string, onRecord?: (done: number, total: number) => void): Promise<ImportCounts> {
-    const records = await this.readRecords(jsonPath)
+  async import(
+    source: string | Record<string, unknown> | FiveEToolsRecord[],
+    onRecord?: (done: number, total: number) => void,
+  ): Promise<ImportCounts> {
+    const records = await this.resolveRecords(source)
     let imported = 0
     let skipped = 0
     let processed = 0
@@ -90,28 +93,34 @@ export abstract class EntityImporter {
   }
 
   /**
-   * Reads and validates the named record array.
-   *
-   * @param jsonPath Vault path to a JSON file.
-   * @returns Current named records.
+   * Resolves current named records from a path, parsed container, or record array.
    */
-  private async readRecords(jsonPath: string): Promise<FiveEToolsRecord[]> {
+  private async resolveRecords(source: string | Record<string, unknown> | FiveEToolsRecord[]): Promise<FiveEToolsRecord[]> {
+    if (Array.isArray(source)) {
+      return source.filter(isCurrentRecord)
+    }
+    if (typeof source !== 'string') {
+      return this.extractRecords(source, 'parsed data')
+    }
     let parsed: unknown
     try {
-      parsed = JSON.parse(await this.vault.read(jsonPath)) as unknown
+      parsed = JSON.parse(await this.vault.read(source)) as unknown
     } catch {
-      throw new Error(`Could not parse JSON: ${jsonPath}`)
+      throw new Error(`Could not parse JSON: ${source}`)
     }
-    if (!parsed || typeof parsed !== 'object') {
-      throw new Error(`The JSON file has no ${this.entityName} records: ${jsonPath}`)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error(`The JSON file has no ${this.entityName} records: ${source}`)
     }
-    const container = parsed as Record<string, unknown>
+    return this.extractRecords(parsed as Record<string, unknown>, source)
+  }
+
+  private extractRecords(container: Record<string, unknown>, label: string): FiveEToolsRecord[] {
     const recordsValue = this.recordKeys
       .map(key => container[key])
       .find((value): value is unknown[] => Array.isArray(value))
-    if (!recordsValue) throw new Error(`The JSON file has no ${this.entityName} records: ${jsonPath}`)
+    if (!recordsValue) throw new Error(`The JSON file has no ${this.entityName} records: ${label}`)
     if (!recordsValue.every(record => record && typeof record === 'object' && typeof (record as Record<string, unknown>).name === 'string')) {
-      throw new Error(`The JSON file has unnamed ${this.entityName} records: ${jsonPath}`)
+      throw new Error(`The JSON file has unnamed ${this.entityName} records: ${label}`)
     }
     return recordsValue.filter(isCurrentRecord) as FiveEToolsRecord[]
   }

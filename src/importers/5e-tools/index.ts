@@ -44,7 +44,7 @@ export function fiveEToolsFolderFor(kind: FiveEToolsEntityKind, folders: NoteFol
 
 // Coordinator & file handling
 export { FiveEToolsImportCoordinator, isWritableVault, type ImportProgress, type ImportReport } from './importCoordinator'
-export { findImportFiles, readImportFiles, IMPORT_CATEGORIES, type VaultAdapter } from './fileHandler'
+export { collectImportPaths, readImportFile, IMPORT_CATEGORIES, type ParsedImportFile, type VaultAdapter } from './fileHandler'
 
 // Entity Importers
 export { importFeats, type FeatImportReport, type FeatVault } from './importers/featImporter'

@@ -50,9 +50,9 @@ export class ItemImporter extends EntityImporter {
  */
 export async function importItems(
   vault: ItemVault,
-  jsonPath: string,
+  source: string | Record<string, unknown> | FiveEToolsRecord[],
   folders: NoteFoldersSettings,
   onRecord?: (done: number, total: number) => void,
 ): Promise<ItemImportReport> {
-  return new ItemImporter(vault, folders).import(jsonPath, onRecord)
+  return new ItemImporter(vault, folders).import(source, onRecord)
 }

@@ -34,9 +34,9 @@ export class FeatImporter extends EntityImporter {
  */
 export async function importFeats(
   vault: FeatVault,
-  jsonPath: string,
+  source: string | Record<string, unknown> | FiveEToolsRecord[],
   folders: NoteFoldersSettings,
   onRecord?: (done: number, total: number) => void,
 ): Promise<FeatImportReport> {
-  return new FeatImporter(vault, folders).import(jsonPath, onRecord)
+  return new FeatImporter(vault, folders).import(source, onRecord)
 }

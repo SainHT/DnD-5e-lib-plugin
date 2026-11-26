@@ -1,11 +1,11 @@
-import { findImportFiles, readImportFiles, type VaultAdapter } from './fileHandler'
+import { collectImportPaths, isJson, readImportFile, type VaultAdapter } from './fileHandler'
 import { importFeats } from './importers/featImporter'
 import { importSpells } from './importers/spellImporter'
 import { importMonsters } from './importers/monsterImporter'
 import { importItems } from './importers/itemImporter'
 import type { ImportCounts, WritableVault } from './importers/entityImporter'
 import { DEFAULT_NOTE_FOLDERS, type NoteFoldersSettings } from '../../platform'
-import type { FiveEToolsCategory } from './types'
+import type { FiveEToolsCategory, FiveEToolsRecord } from './types'
 
 export interface ImportProgress {
   file: string
@@ -20,7 +20,7 @@ export interface ImportReport {
 
 type CategoryImporter = (
   vault: WritableVault,
-  path: string,
+  source: string | Record<string, unknown> | FiveEToolsRecord[],
   folders: NoteFoldersSettings,
   onRecord?: (done: number, total: number) => void,
 ) => Promise<ImportCounts>
@@ -41,25 +41,38 @@ export class FiveEToolsImportCoordinator {
 
   async import(path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void): Promise<ImportReport> {
     try {
-      const candidates = await findImportFiles(this.adapter, path, category)
-      const files = await readImportFiles(this.adapter, candidates)
-      const report: ImportReport = {
-        files: files.length,
-        items: files.reduce((count, file) => count + file.records.length, 0),
-      }
+      const paths = await collectImportPaths(this.adapter, path)
+      const isSingleFile = paths.length === 1 && isJson(paths[0]) && isJson(path)
+      let files = 0
+      let items = 0
 
-      for (const file of files) {
-        const fileName = file.path.split('/').pop() ?? file.path
+      for (const filePath of paths) {
+        const parsed = await readImportFile(this.adapter, filePath, isSingleFile ? category : undefined)
+        if (!parsed) {
+          if (isSingleFile) throw new Error(`Could not detect a 5etools category for: ${filePath}`)
+          continue
+        }
+
+        files += 1
+        items += parsed.records.length
+
         if (isWritableVault(this.adapter)) {
-          const importer = CATEGORY_IMPORTERS[file.category]
+          const importer = CATEGORY_IMPORTERS[parsed.category]
           if (importer) {
-            onProgress?.({ file: fileName, current: 0, total: file.records.length })
-            await importer(this.adapter, file.path, this.folders(), (fileDone, fileTotal) => {
+            const fileName = parsed.path.split('/').pop() ?? parsed.path
+            onProgress?.({ file: fileName, current: 0, total: parsed.records.length })
+            await importer(this.adapter, parsed.data, this.folders(), (fileDone, fileTotal) => {
               onProgress?.({ file: fileName, current: fileDone, total: fileTotal })
             })
           }
         }
       }
+
+      if (files === 0) {
+        throw new Error('The folder contains no recognized 5etools JSON files.')
+      }
+
+      const report: ImportReport = { files, items }
       this.notify(
         `5etools data found: ${report.items} ${report.items === 1 ? 'item' : 'items'} in ${report.files} ${
           report.files === 1 ? 'JSON file' : 'JSON files'

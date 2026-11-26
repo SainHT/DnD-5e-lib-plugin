@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { findImportFiles, readImportFiles, type VaultAdapter } from '../fileHandler'
+import { describe, expect, it, vi } from 'vitest'
+import { collectImportPaths, readImportFile, type VaultAdapter } from '../fileHandler'
 
 class FixtureAdapter implements VaultAdapter {
   constructor(private readonly files: Record<string, string>, private readonly folders: string[]) {}
@@ -22,7 +22,7 @@ class FixtureAdapter implements VaultAdapter {
 }
 
 describe('5etools file handling', () => {
-  it('filters directory imports to JSON files in standard categories', async () => {
+  it('collects JSON paths in directories without reading file contents', async () => {
     const adapter = new FixtureAdapter(
       {
         'data/spells/spells.json': '{"spell":[{"name":"Light"}]}',
@@ -31,14 +31,16 @@ describe('5etools file handling', () => {
       },
       ['data', 'data/spells', 'data/bestiary'],
     )
+    const readSpy = vi.spyOn(adapter, 'read')
 
-    await expect(findImportFiles(adapter, 'data')).resolves.toEqual([
-      { path: 'data/spells/spells.json', category: 'spells' },
-      { path: 'data/bestiary/monsters.json', category: 'bestiary' },
+    await expect(collectImportPaths(adapter, 'data')).resolves.toEqual([
+      'data/spells/spells.json',
+      'data/bestiary/monsters.json',
     ])
+    expect(readSpy).not.toHaveBeenCalled()
   })
 
-  it('auto-detects or accepts an explicit category for a single JSON file', async () => {
+  it('reads and detects category from a single JSON file in one pass', async () => {
     const adapter = new FixtureAdapter(
       {
         'data/items.json': '{"item":[{"name":"Torch"}]}',
@@ -47,31 +49,27 @@ describe('5etools file handling', () => {
       ['data'],
     )
 
-    // Auto-detects category from top-level key when no manual category is passed
-    await expect(findImportFiles(adapter, 'data/items.json')).resolves.toEqual([
-      { path: 'data/items.json', category: 'items' },
-    ])
+    await expect(readImportFile(adapter, 'data/items.json')).resolves.toEqual({
+      path: 'data/items.json',
+      category: 'items',
+      data: { item: [{ name: 'Torch' }] },
+      records: [{ name: 'Torch' }],
+    })
 
-    // Explicit category override still works
-    await expect(findImportFiles(adapter, 'data/items.json', 'items')).resolves.toEqual([
-      { path: 'data/items.json', category: 'items' },
-    ])
+    await expect(readImportFile(adapter, 'data/items.json', 'items')).resolves.toEqual({
+      path: 'data/items.json',
+      category: 'items',
+      data: { item: [{ name: 'Torch' }] },
+      records: [{ name: 'Torch' }],
+    })
 
-    // Rejects when category cannot be auto-detected and none is provided
-    await expect(findImportFiles(adapter, 'data/unknown.json')).rejects.toThrow(
-      'Could not detect a 5etools category',
-    )
+    await expect(readImportFile(adapter, 'data/unknown.json')).resolves.toBeNull()
   })
 
-  it('rejects non-JSON files', async () => {
+  it('rejects folders with no JSON files', async () => {
     const adapter = new FixtureAdapter({ 'data/items.txt': '{}' }, ['data'])
-    await expect(findImportFiles(adapter, 'data/items.txt')).rejects.toThrow('The folder contains no recognized 5etools JSON files.')
-  })
-
-  it('reads named records from a 5etools file', async () => {
-    const adapter = new FixtureAdapter({ 'spells.json': '{"spell":[{"name":"Light"}]}' }, [])
-    await expect(readImportFiles(adapter, [{ path: 'spells.json', category: 'spells' }])).resolves.toEqual([
-      { path: 'spells.json', category: 'spells', records: [{ name: 'Light' }] },
-    ])
+    await expect(collectImportPaths(adapter, 'data/items.txt')).rejects.toThrow(
+      'The folder contains no recognized 5etools JSON files.',
+    )
   })
 })

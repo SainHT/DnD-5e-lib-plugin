@@ -39,9 +39,9 @@ export class MonsterImporter extends EntityImporter {
  */
 export async function importMonsters(
   vault: MonsterVault,
-  jsonPath: string,
+  source: string | Record<string, unknown> | FiveEToolsRecord[],
   folders: NoteFoldersSettings,
   onRecord?: (done: number, total: number) => void,
 ): Promise<MonsterImportReport> {
-  return new MonsterImporter(vault, folders).import(jsonPath, onRecord)
+  return new MonsterImporter(vault, folders).import(source, onRecord)
 }
