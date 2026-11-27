@@ -153,7 +153,7 @@ export {
   spellShelfWhen,
 } from './model/spellShelves'
 export { SRD_PAYLOAD } from './store/srd/payload'
-export { describeSeedReport, inflateSrdArchive, type SeedReport, seedSrdNotes } from './store/srd/seed'
+export { bodyHash, describeSeedReport, inflateSrdArchive, type SeedReport, seedSrdNotes } from './store/srd/seed'
 export { DEFAULT_TEMPLATES_FOLDER, templateFolderProblem } from './model/homebrewTemplates'
 export { NOTE_KINDS, type NoteKind } from './model/noteTemplates'
 export { describeTemplatesReport, type TemplatesReport, writeHomebrewTemplates } from './store/templates'

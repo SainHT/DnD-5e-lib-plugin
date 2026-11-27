@@ -9,6 +9,7 @@ import { DdbConvertProvider, FileImport } from '../../ddbConvert/host'
 import { GmProvider, useMonsterEncounter } from '../../gm/host'
 import { CatalogsProvider } from '../../catalogs/host'
 import { PlatformProvider } from '../../platform/host'
+import type { FiveEToolsCategory, ImportProgress, ImportReport } from '../../importers'
 
 /**
  * Every domain's provider, nested once (MYDND-199).
@@ -41,6 +42,7 @@ export function DomainProviders({
   privateProviders,
   srdNotes,
   noteBuilder,
+  importFiveETools,
   children,
 }: {
   content: Content
@@ -82,6 +84,12 @@ export function DomainProviders({
   privateProviders?: (children: ReactNode) => ReactNode
   /** The SRD edition only; see `useSrdNotes`. */
   srdNotes?: SrdNotesHost
+  // Report of progress in regards to where in files the importer is
+  importFiveETools?: (
+    path: string,
+    category?: FiveEToolsCategory,
+    onProgress?: (progress: ImportProgress) => void,
+  ) => Promise<ImportReport>
   /**
    * Draws the note builders' page (MYDND-233), its host already around it. The
    * plugin's only: `HostProviders` passes it and the web build never does, so
@@ -89,7 +97,7 @@ export function DomainProviders({
    * render function rather than a component, so the page's own type is static
    * and a re-render never remounts the form.
    */
-  noteBuilder?: () => ReactNode
+  noteBuilder?: () => ReactNode                          
   children: ReactNode
 }) {
   // A new object per render would re-render every GM consumer on every render
@@ -126,15 +134,17 @@ export function DomainProviders({
                 not private, so every mount gets it, the harness included. */}
             <CatalogsProvider useMonsterEncounter={useMonsterEncounter} noteBuilders={noteBuilder !== undefined}>
               <SrdNotesContext.Provider value={srdNotes ?? null}>
-                <NoteBuilderContext.Provider value={noteBuilder ?? null}>
-                  <DdbConvertProvider
-                    fetchDdbPayload={ddbConvert?.fetchDdbPayload}
-                    convertDdbCharacter={ddbConvert?.convertDdbCharacter}
-                    createNotes={ddbConvert?.createNotes}
-                  >
-                    {privateProviders ? privateProviders(children) : children}
-                  </DdbConvertProvider>
-                </NoteBuilderContext.Provider>
+                <FiveEToolsContext.Provider value={importFiveETools ?? null}>
+                  <NoteBuilderContext.Provider value={noteBuilder ?? null}>
+                    <DdbConvertProvider
+                      fetchDdbPayload={ddbConvert?.fetchDdbPayload}
+                      convertDdbCharacter={ddbConvert?.convertDdbCharacter}
+                      createNotes={ddbConvert?.createNotes}
+                    >
+                      {privateProviders ? privateProviders(children) : children}
+                    </DdbConvertProvider>
+                  </NoteBuilderContext.Provider>
+                </FiveEToolsContext.Provider>
               </SrdNotesContext.Provider>
             </CatalogsProvider>
           </GmProvider>
@@ -145,6 +155,9 @@ export function DomainProviders({
 }
 
 const SrdNotesContext = createContext<SrdNotesHost | null>(null)
+const FiveEToolsContext = createContext<
+  ((path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void) => Promise<ImportReport>) | null
+>(null)
 
 const NoteBuilderContext = createContext<(() => ReactNode) | null>(null)
 
@@ -160,4 +173,10 @@ export function useNoteBuilder(): (() => ReactNode) | null {
  */
 export function useSrdNotes(): SrdNotesHost | null {
   return useContext(SrdNotesContext)
+}
+
+export function useFiveEToolsImport(): (
+  (path: string, category?: FiveEToolsCategory, onProgress?: (progress: ImportProgress) => void) => Promise<ImportReport>
+) | null {
+  return useContext(FiveEToolsContext)
 }

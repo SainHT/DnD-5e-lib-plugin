@@ -8,6 +8,7 @@ export const ORDER = [
   ['derive'],
   ['platform'],
   ['compendium'],
+  ['importers'],
   ['dice'],
   ['characterModel'],
   ['choices'],
