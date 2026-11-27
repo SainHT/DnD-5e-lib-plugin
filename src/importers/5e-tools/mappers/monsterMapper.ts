@@ -76,7 +76,7 @@ export async function mapMonster(record: FiveEToolsRecord): Promise<MappedNote> 
     initiative: initiativeString(record),
     alignment: alignmentName(record.alignment),
     stats: ['str', 'dex', 'con', 'int', 'wis', 'cha'].map(key =>
-      typeof record[key] === 'number' ? record[key] as number : 10,
+      typeof record[key] === 'number' ? record[key] : 10,
     ),
     saves: numericRows(record.save, true),
     skills: numericRows(record.skill),
